@@ -1,0 +1,15 @@
+{
+  "name": "ujg-fed-a11y",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "test:federation": "pnpm --filter @ujg-fed-a11y/federation-tests test",
+    "test:federation:headed": "pnpm --filter @ujg-fed-a11y/federation-tests test:headed",
+    "test:federation:ui": "pnpm --filter @ujg-fed-a11y/federation-tests test:ui"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^7.0.2"
+  }
+}

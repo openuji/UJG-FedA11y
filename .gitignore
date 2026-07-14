@@ -1,0 +1,8 @@
+protottypes
+node_modules/
+playwright-report/
+test-results/
+tests/*/playwright-report/
+tests/*/test-results/
+node_modules
+spec.md
