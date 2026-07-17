@@ -5,6 +5,7 @@ import 'lucode-starlight/styles/base';
 
 import ThemeProvider from '@astrojs/starlight/components/ThemeProvider.astro';
 import Header from 'virtual:starlight/components/Header';
+import JourneyPathIsland from '../components/JourneyPathIsland';
 
 (Astro.locals as any).starlightRoute = {
 	siteTitle: 'UJG-FedA11y',
@@ -48,13 +49,33 @@ import Header from 'virtual:starlight/components/Header';
       </header>
 
       <main>
-        hello we are ujg-feda11y
+        <section class="intro">
+          <p class="eyebrow">UJG-FedA11y</p>
+          <h1>Federated accessibility journeys</h1>
+          <p>
+            A local rendering of the federated file sharing journey path from the User Journey Graph model.
+          </p>
+        </section>
+
+        <section class="journey-panel" aria-labelledby="journey-path-title">
+          <div class="journey-panel__header">
+            <p class="eyebrow">Journey path</p>
+            <h2 id="journey-path-title">Federated file sharing</h2>
+          </div>
+          <JourneyPathIsland client:load />
+        </section>
       </main>
     </div>
   </body>
 </html>
 
 <style is:global>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   html,
   body {
     margin: 0;
@@ -129,5 +150,81 @@ import Header from 'virtual:starlight/components/Header';
   main {
     flex: 1;
     padding: calc(var(--spacing) * 10) calc(var(--spacing) * 6);
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin-inline: auto;
+  }
+
+  .intro {
+    max-width: 48rem;
+    margin-bottom: calc(var(--spacing) * 10);
+  }
+
+  .intro h1,
+  .journey-panel h2 {
+    margin: 0;
+    color: var(--foreground);
+    line-height: 1.1;
+  }
+
+  .intro h1 {
+    max-width: 14ch;
+    font-size: clamp(2.25rem, 7vw, 5rem);
+    letter-spacing: 0;
+  }
+
+  .intro p:not(.eyebrow) {
+    max-width: 42rem;
+    color: var(--muted-foreground);
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+
+  .eyebrow {
+    margin: 0 0 calc(var(--spacing) * 3);
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .journey-panel {
+    display: grid;
+    gap: calc(var(--spacing) * 6);
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+    border-radius: var(--radius);
+    padding: calc(var(--spacing) * 6);
+    background: color-mix(in oklab, var(--background) 88%, var(--card));
+  }
+
+  .journey-panel__header {
+    display: grid;
+    gap: calc(var(--spacing) * 1);
+  }
+
+  .journey-panel h2 {
+    font-size: 1.25rem;
+  }
+
+  :global(.journey-path-island) {
+    --color-surface: var(--card);
+    --color-surface-muted: var(--muted);
+    --color-foreground: var(--foreground);
+    --color-foreground-muted: var(--muted-foreground);
+    --color-border: var(--border);
+    --color-border-mute: color-mix(in oklab, var(--border) 55%, transparent);
+    --color-accent: var(--blue);
+    --color-accent-muted: var(--blue-low);
+    --color-success: var(--green);
+    --color-success-muted: var(--green-low);
+    --color-warning: var(--orange);
+    --color-warning-muted: var(--orange-low);
+    --color-danger: var(--red);
+    --color-danger-muted: var(--red-low);
+    min-width: max-content;
   }
 </style>
