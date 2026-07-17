@@ -1,0 +1,8 @@
+{
+  "name": "ujg-feda11y",
+  // Set this to today's date
+  "compatibility_date": "2026-07-08",
+  "assets": {
+    "directory": "./dist"
+  }
+}
