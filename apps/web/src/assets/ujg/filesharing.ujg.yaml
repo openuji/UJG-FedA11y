@@ -332,85 +332,90 @@ resolvers:
   "urn:resolver:artifact-instance":
     label: "Resolve repeated artifact surface instances"
     instanceKeyFeatureRef: "urn:feature:artifact-instance-key"
+observationEvents:
+  "urn:observation-event:presence":
+    label: "Presence"
+  "urn:observation-event:activation":
+    label: "Activation"
 observationBindings:
   "urn:obs:alice-files-ready-presence":
     label: "Observe Alice files ready"
     observeSurfaceRef: "urn:surface:alice-files-ready"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:alice-file-row"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:alice-share-panel-open-presence":
     label: "Observe Alice share panel open"
     observeSurfaceRef: "urn:surface:alice-share-panel-open"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:sharing-panel"
   "urn:obs:alice-remote-recipient-entered-presence":
     label: "Observe Alice remote recipient entered"
     observeSurfaceRef: "urn:surface:alice-remote-recipient-entered"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:remote-recipient-entry"
   "urn:obs:alice-share-confirmed-presence":
     label: "Observe Alice share confirmed"
     observeSurfaceRef: "urn:surface:alice-share-confirmed"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:alice-share-row"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-incoming-share-visible-presence":
     label: "Observe Bob incoming share"
     observeSurfaceRef: "urn:surface:bob-incoming-share-visible"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:incoming-share-row"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-share-accepted-presence":
     label: "Observe Bob share accepted"
     observeSurfaceRef: "urn:surface:bob-share-accepted"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:accepted-share-row"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-file-visible-presence":
     label: "Observe Bob file visible"
     observeSurfaceRef: "urn:surface:bob-file-visible"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#presence"
+    observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:bob-file-row"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:alice-opens-file-menu-activation":
     label: "Activate Alice share action"
     observeSurfaceRef: "urn:surface:alice-opens-file-menu"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#activation"
+    observationEventRef: "urn:observation-event:activation"
     locatorRefs:
       - "urn:locator:file-share-action"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:alice-enters-remote-bob-activation":
     label: "Activate Alice remote recipient entry"
     observeSurfaceRef: "urn:surface:alice-enters-remote-bob"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#activation"
+    observationEventRef: "urn:observation-event:activation"
     locatorRefs:
       - "urn:locator:remote-recipient-input"
   "urn:obs:alice-confirms-share-activation":
     label: "Activate Alice share confirmation"
     observeSurfaceRef: "urn:surface:alice-confirms-share"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#activation"
+    observationEventRef: "urn:observation-event:activation"
     locatorRefs:
       - "urn:locator:confirm-share-button"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-accepts-share-activation":
     label: "Activate Bob share acceptance"
     observeSurfaceRef: "urn:surface:bob-accepts-share"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#activation"
+    observationEventRef: "urn:observation-event:activation"
     locatorRefs:
       - "urn:locator:bob-accept-share-button"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-opens-accepted-file-activation":
     label: "Activate Bob open accepted file"
     observeSurfaceRef: "urn:surface:bob-opens-accepted-file"
-    observationEventRef: "https://ujg.specs.openuji.org/ed/ns/observability#activation"
+    observationEventRef: "urn:observation-event:activation"
     locatorRefs:
       - "urn:locator:bob-open-file-action"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
