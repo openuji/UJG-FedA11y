@@ -48,6 +48,11 @@ export type ResolvedStateObservation = {
   bindings: ResolvedObservationBinding[];
 };
 
+export type ResolvedStatePresenceTarget = {
+  observation: ResolvedStateObservation;
+  bindings: ResolvedObservationBinding[];
+};
+
 type ResolvedSurfaceInstanceResolver = {
   id: string;
   label?: string;
@@ -98,6 +103,18 @@ export function resolveStatePresenceObservation(
     surfaceId: surface["@id"],
     surfaceLabel: optionalString(surface.label),
     bindings
+  };
+}
+
+export function resolveStatePresenceTarget(
+  document: UjgDocument,
+  stateId: string
+): ResolvedStatePresenceTarget {
+  const observation = resolveStatePresenceObservation(document, stateId);
+
+  return {
+    observation,
+    bindings: observation.bindings
   };
 }
 

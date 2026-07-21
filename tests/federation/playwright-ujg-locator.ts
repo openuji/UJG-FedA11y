@@ -1,6 +1,10 @@
 import { type Locator, type Page } from "@playwright/test";
 
-import { type AccessibleFeature, type ResolvedAccessibleLocator } from "./ujg-resolver.js";
+import {
+  type AccessibleFeature,
+  type ResolvedAccessibleLocator,
+  type ResolvedObservationBinding
+} from "./ujg-resolver.js";
 
 type LocatorRoot = Page | Locator;
 
@@ -10,14 +14,7 @@ type FeatureAdapter = {
 };
 
 const featureAdapters: FeatureAdapter[] = [
-  {
-    featureName: "file-id",
-    apply(root, locator, feature) {
-      return feature.value === "*"
-        ? locator.and(root.locator(fileIdSelector()))
-        : locator.and(root.locator(fileIdSelector(feature.value)));
-    }
-  }
+  
 ];
 
 export function toPlaywrightLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): Locator {
@@ -31,6 +28,25 @@ export function toPlaywrightLocator(root: LocatorRoot, locator: ResolvedAccessib
     (currentLocator, feature) => applyFeature(scopedRoot, currentLocator, feature),
     roleLocator
   );
+}
+
+export function toPlaywrightObservationLocator(
+  root: LocatorRoot,
+  bindings: ResolvedObservationBinding[]
+): Locator {
+  if (bindings.length === 0) {
+    throw new Error("Expected at least one ObservationBinding");
+  }
+
+  return bindings.map((binding) => toPlaywrightBindingLocator(root, binding)).reduce((a, b) => a.or(b));
+}
+
+function toPlaywrightBindingLocator(root: LocatorRoot, binding: ResolvedObservationBinding): Locator {
+  if (binding.locators.length === 0) {
+    throw new Error(`ObservationBinding ${binding.id} must define at least one locator`);
+  }
+
+  return binding.locators.map((locator) => toPlaywrightLocator(root, locator)).reduce((a, b) => a.and(b));
 }
 
 function getRoleLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): Locator {
@@ -59,25 +75,7 @@ function applyFeature(root: LocatorRoot, locator: Locator, feature: AccessibleFe
   return adapter.apply(root, locator, feature);
 }
 
-function fileIdSelector(value?: string): string {
-  // Bridges the logical UJG file-id feature to the concrete attributes Nextcloud exposes on file rows.
-  const attributes = [
-    "data-cy-files-list-row-fileid",
-    "data-id",
-    "data-fileid",
-    "data-file-id"
-  ];
 
-  return attributes.map((attribute) => attributeSelector(attribute, value)).join(", ");
-}
-
-function attributeSelector(attribute: string, value?: string): string {
-  return value === undefined ? `[${attribute}]` : `[${attribute}="${cssString(value)}"]`;
-}
-
-function cssString(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
 
 function accessibleNamePattern(value: string): RegExp {
   return new RegExp(escapeRegExp(value), "i");
