@@ -1,6 +1,6 @@
 # Nested UJG authoring document aligned with the Editor's Draft state on 2026-07-16.
 # Keeps the compact authoring structure; a compiler may expand it to normative JSON-LD nodes.
-ujgTarget: ed-2026-07-16
+ujgTarget: ed-2026-07-19
 touchpoints:
   "urn:touchpoint:nextcloud-a":
     label: "Nextcloud A"
@@ -247,6 +247,15 @@ messageBundle:
     locales:
       en:
         value: "Open"
+  "urn:message:report-pdf-file-name":
+    label: "Report PDF file name",
+    namespace: "nextcloud.files",
+    messageKey: "files.reportPdf.fileName",
+    defaultLocale: "en",
+    locales:
+        en: 
+          value: "report.pdf"
+        
 
 accessible:
   features:
@@ -267,8 +276,7 @@ accessible:
     "urn:locator:alice-file-row":
       label: "Alice target file row"
       role: "row"
-      accessibleFeatureRefs:
-        - "urn:feature:artifact-instance-key"
+      accessibleNameRef: "urn:message:report-pdf-file-name"
     "urn:locator:remote-recipient-entry":
       label: "Remote recipient result"
       role: "option"
@@ -332,11 +340,34 @@ resolvers:
   "urn:resolver:artifact-instance":
     label: "Resolve repeated artifact surface instances"
     instanceKeyFeatureRef: "urn:feature:artifact-instance-key"
+inputModalities:
+  "urn:input-modality:keyboard":
+    label: "Keyboard"
+  "urn:input-modality:pointer":
+    label: "Pointer"
+
+inputModalityProfiles:
+  "urn:input-modality-profile:keyboard":
+    label: "Keyboard interaction"
+    inputModalityRefs:
+      - "urn:input-modality:keyboard"
+  "urn:input-modality-profile:pointer":
+    label: "Pointer interaction"
+    inputModalityRefs:
+      - "urn:input-modality:pointer"
+
 observationEvents:
   "urn:observation-event:presence":
     label: "Presence"
-  "urn:observation-event:activation":
-    label: "Activation"
+  "urn:observation-event:button-activation":
+    label: "Button activation"
+    requiredInputModalityProfileRefs:
+      - "urn:input-modality-profile:keyboard"
+      - "urn:input-modality-profile:pointer"
+  "urn:observation-event:text-entry-activation":
+    label: "Text entry activation"
+    requiredInputModalityProfileRefs:
+      - "urn:input-modality-profile:keyboard"
 observationBindings:
   "urn:obs:alice-files-ready-presence":
     label: "Observe Alice files ready"
@@ -388,34 +419,34 @@ observationBindings:
   "urn:obs:alice-opens-file-menu-activation":
     label: "Activate Alice share action"
     observeSurfaceRef: "urn:surface:alice-opens-file-menu"
-    observationEventRef: "urn:observation-event:activation"
+    observationEventRef: "urn:observation-event:button-activation"
     locatorRefs:
       - "urn:locator:file-share-action"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:alice-enters-remote-bob-activation":
     label: "Activate Alice remote recipient entry"
     observeSurfaceRef: "urn:surface:alice-enters-remote-bob"
-    observationEventRef: "urn:observation-event:activation"
+    observationEventRef: "urn:observation-event:text-entry-activation"
     locatorRefs:
       - "urn:locator:remote-recipient-input"
   "urn:obs:alice-confirms-share-activation":
     label: "Activate Alice share confirmation"
     observeSurfaceRef: "urn:surface:alice-confirms-share"
-    observationEventRef: "urn:observation-event:activation"
+    observationEventRef: "urn:observation-event:button-activation"
     locatorRefs:
       - "urn:locator:confirm-share-button"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-accepts-share-activation":
     label: "Activate Bob share acceptance"
     observeSurfaceRef: "urn:surface:bob-accepts-share"
-    observationEventRef: "urn:observation-event:activation"
+    observationEventRef: "urn:observation-event:button-activation"
     locatorRefs:
       - "urn:locator:bob-accept-share-button"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-opens-accepted-file-activation":
     label: "Activate Bob open accepted file"
     observeSurfaceRef: "urn:surface:bob-opens-accepted-file"
-    observationEventRef: "urn:observation-event:activation"
+    observationEventRef: "urn:observation-event:button-activation"
     locatorRefs:
       - "urn:locator:bob-open-file-action"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"

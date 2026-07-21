@@ -473,6 +473,19 @@
       }
     },
     {
+      "@type": "MessageBundle",
+      "@id": "urn:message:report-pdf-file-name",
+      "label": "Report PDF file name",
+      "namespace": "nextcloud.files",
+      "messageKey": "files.reportPdf.fileName",
+      "defaultLocale": "en",
+      "locales": {
+        "en": {
+          "value": "report.pdf"
+        }
+      }
+    },
+    {
       "@type": "AccessibleFeature",
       "@id": "urn:feature:artifact-instance-key",
       "label": "Artifact instance key",
@@ -498,9 +511,7 @@
       "@id": "urn:locator:alice-file-row",
       "label": "Alice target file row",
       "role": "row",
-      "accessibleFeatureRefs": [
-        "urn:feature:artifact-instance-key"
-      ]
+      "accessibleNameRef": "urn:message:report-pdf-file-name"
     },
     {
       "@type": "AccessibleLocator",
@@ -610,14 +621,52 @@
       "instanceKeyFeatureRef": "urn:feature:artifact-instance-key"
     },
     {
-      "@type": "ObservationEvent",
-      "@id": "urn:observation-event:presence",
-      "label": "Presence"
+      "@type": "InputModality",
+      "@id": "urn:input-modality:keyboard",
+      "label": "Keyboard"
+    },
+    {
+      "@type": "InputModality",
+      "@id": "urn:input-modality:pointer",
+      "label": "Pointer"
+    },
+    {
+      "@type": "InputModalityProfile",
+      "@id": "urn:input-modality-profile:keyboard",
+      "label": "Keyboard interaction",
+      "inputModalityRefs": [
+        "urn:input-modality:keyboard"
+      ]
+    },
+    {
+      "@type": "InputModalityProfile",
+      "@id": "urn:input-modality-profile:pointer",
+      "label": "Pointer interaction",
+      "inputModalityRefs": [
+        "urn:input-modality:pointer"
+      ]
     },
     {
       "@type": "ObservationEvent",
-      "@id": "urn:observation-event:activation",
-      "label": "Activation"
+      "@id": "urn:observation-event:button-activation",
+      "label": "Button activation",
+      "requiredInputModalityProfileRefs": [
+        "urn:input-modality-profile:keyboard",
+        "urn:input-modality-profile:pointer"
+      ]
+    },
+    {
+      "@type": "ObservationEvent",
+      "@id": "urn:observation-event:text-entry-activation",
+      "label": "Text entry activation",
+      "requiredInputModalityProfileRefs": [
+        "urn:input-modality-profile:keyboard"
+      ]
+    },
+    {
+      "@type": "ObservationEvent",
+      "@id": "urn:observation-event:presence",
+      "label": "Presence"
     },
     {
       "@type": "ObservationBinding",
@@ -627,8 +676,7 @@
       "observationEventRef": "urn:observation-event:presence",
       "locatorRefs": [
         "urn:locator:alice-file-row"
-      ],
-      "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+      ]
     },
     {
       "@type": "ObservationBinding",
@@ -699,7 +747,7 @@
       "@id": "urn:obs:alice-opens-file-menu-activation",
       "label": "Activate Alice share action",
       "observeSurfaceRef": "urn:surface:alice-opens-file-menu",
-      "observationEventRef": "urn:observation-event:activation",
+      "observationEventRef": "urn:observation-event:button-activation",
       "locatorRefs": [
         "urn:locator:file-share-action"
       ],
@@ -710,7 +758,7 @@
       "@id": "urn:obs:alice-enters-remote-bob-activation",
       "label": "Activate Alice remote recipient entry",
       "observeSurfaceRef": "urn:surface:alice-enters-remote-bob",
-      "observationEventRef": "urn:observation-event:activation",
+      "observationEventRef": "urn:observation-event:text-entry-activation",
       "locatorRefs": [
         "urn:locator:remote-recipient-input"
       ]
@@ -720,7 +768,7 @@
       "@id": "urn:obs:alice-confirms-share-activation",
       "label": "Activate Alice share confirmation",
       "observeSurfaceRef": "urn:surface:alice-confirms-share",
-      "observationEventRef": "urn:observation-event:activation",
+      "observationEventRef": "urn:observation-event:button-activation",
       "locatorRefs": [
         "urn:locator:confirm-share-button"
       ],
@@ -731,7 +779,7 @@
       "@id": "urn:obs:bob-accepts-share-activation",
       "label": "Activate Bob share acceptance",
       "observeSurfaceRef": "urn:surface:bob-accepts-share",
-      "observationEventRef": "urn:observation-event:activation",
+      "observationEventRef": "urn:observation-event:button-activation",
       "locatorRefs": [
         "urn:locator:bob-accept-share-button"
       ],
@@ -742,7 +790,7 @@
       "@id": "urn:obs:bob-opens-accepted-file-activation",
       "label": "Activate Bob open accepted file",
       "observeSurfaceRef": "urn:surface:bob-opens-accepted-file",
-      "observationEventRef": "urn:observation-event:activation",
+      "observationEventRef": "urn:observation-event:button-activation",
       "locatorRefs": [
         "urn:locator:bob-open-file-action"
       ],
