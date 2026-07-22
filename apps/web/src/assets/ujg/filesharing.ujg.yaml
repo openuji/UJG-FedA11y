@@ -216,13 +216,13 @@ messageBundle:
       en:
         value: "Name, federated cloud ID or email address"
   "urn:message:share-action":
-    label: "Share action"
+    label: "Sharing options action"
     namespace: "nextcloud.actions"
     messageKey: "actions.share"
     defaultLocale: "en"
     locales:
       en:
-        value: "Share"
+        value: "Sharing options"
   "urn:message:confirm-share-action":
     label: "Confirm share action"
     namespace: "nextcloud.actions"
@@ -272,7 +272,6 @@ accessible:
     "urn:locator:sharing-panel":
       label: "Sharing panel"
       role: "complementary"
-      accessibleNameRef: "urn:message:sharing-panel"
     "urn:locator:alice-file-row":
       label: "Alice target file row"
       role: "row"

@@ -23,8 +23,10 @@ export type AxeAuditInput = {
 };
 
 export type AxeDomStatus = "matched" | "ambiguous" | "not-found" | "not-css-target";
+export type AxeRuleResultType = "violation" | "incomplete";
 
 export type AxeNodeEvidence = {
+  resultType: AxeRuleResultType;
   violationId: string;
   nodeIndex: number;
   url: string;

@@ -3,6 +3,7 @@ import { type Locator, type Page } from "@playwright/test";
 import {
   type AccessibleFeature,
   type ResolvedAccessibleLocator,
+  type ResolvedInputModalityProfile,
   type ResolvedObservationBinding
 } from "./ujg-resolver.js";
 
@@ -16,6 +17,9 @@ type FeatureAdapter = {
 const featureAdapters: FeatureAdapter[] = [
   
 ];
+
+const keyboardInputModalityId = "urn:input-modality:keyboard";
+const pointerInputModalityId = "urn:input-modality:pointer";
 
 export function toPlaywrightLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): Locator {
   const scopedRoot = locator.contexts.reduce(
@@ -39,6 +43,34 @@ export function toPlaywrightObservationLocator(
   }
 
   return bindings.map((binding) => toPlaywrightBindingLocator(root, binding)).reduce((a, b) => a.or(b));
+}
+
+export async function activateWithInputModalityProfile(
+  locator: Locator,
+  profile: ResolvedInputModalityProfile
+): Promise<void> {
+  if (profile.modalities.length !== 1) {
+    throw new Error(
+      `InputModalityProfile ${profile.id} must define exactly one modality for this Playwright adapter, got ${describeInputModalities(
+        profile
+      )}`
+    );
+  }
+
+  const modality = profile.modalities[0];
+
+  switch (modality.id) {
+    case pointerInputModalityId:
+      await locator.click();
+      return;
+    case keyboardInputModalityId:
+      await locator.press("Space");
+      return;
+    default:
+      throw new Error(
+        `Unsupported InputModalityProfile ${profile.id} with modality ${modality.id}`
+      );
+  }
 }
 
 function toPlaywrightBindingLocator(root: LocatorRoot, binding: ResolvedObservationBinding): Locator {
@@ -75,7 +107,13 @@ function applyFeature(root: LocatorRoot, locator: Locator, feature: AccessibleFe
   return adapter.apply(root, locator, feature);
 }
 
+function describeInputModalities(profile: ResolvedInputModalityProfile): string {
+  if (profile.modalities.length === 0) {
+    return "none";
+  }
 
+  return profile.modalities.map((modality) => modality.id).join(", ");
+}
 
 function accessibleNamePattern(value: string): RegExp {
   return new RegExp(escapeRegExp(value), "i");

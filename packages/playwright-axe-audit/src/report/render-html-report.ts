@@ -5,6 +5,7 @@ import {
   type AxeNode,
   type AxeNodeEvidence,
   type AxeResults,
+  type AxeRuleResultType,
   type AxeRuleResult,
   type AxeScanEvidence
 } from "../shared/types.js";
@@ -29,7 +30,8 @@ export function renderHtmlReport(
     "code,pre{background:#f6f8fa;border-radius:4px}",
     "pre{padding:.75rem;overflow:auto}",
     "img{display:block;max-width:min(100%,720px);height:auto;border:1px solid #d8dee4}",
-    ".violation{border:1px solid #d8dee4;border-radius:6px;padding:1rem;margin-block:1rem}",
+    ".rule-result{border:1px solid #d8dee4;border-radius:6px;padding:1rem;margin-block:1rem}",
+    ".rule-result.incomplete{border-color:#bf8700;background:#fff8c5}",
     ".impact{font-weight:700}",
     "</style>",
     "</head>",
@@ -87,9 +89,18 @@ function renderScan(
   screenshotEmbeds: ScreenshotEmbeds
 ): string {
   const violations = results.violations
-    .map((violation) => renderViolation(
+    .map((violation) => renderRuleResult(
+      "violation",
       violation,
-      evidence.nodes.filter((node) => node.violationId === violation.id),
+      evidence.nodes.filter((node) => isEvidenceForResult(node, "violation", violation.id)),
+      screenshotEmbeds
+    ))
+    .join("\n");
+  const incomplete = results.incomplete
+    .map((incompleteResult) => renderRuleResult(
+      "incomplete",
+      incompleteResult,
+      evidence.nodes.filter((node) => isEvidenceForResult(node, "incomplete", incompleteResult.id)),
       screenshotEmbeds
     ))
     .join("\n");
@@ -103,29 +114,42 @@ function renderScan(
     row("Passes", String(results.passes.length)),
     row("Inapplicable", String(results.inapplicable.length)),
     "</table>",
+    "<h3>Violations</h3>",
     violations || "<p>No violations reported.</p>",
+    "<h3>Incomplete</h3>",
+    incomplete || "<p>No incomplete checks reported.</p>",
     "</section>"
   ].join("\n");
 }
 
-function renderViolation(
-  violation: AxeRuleResult,
+function renderRuleResult(
+  resultType: AxeRuleResultType,
+  result: AxeRuleResult,
   evidence: AxeNodeEvidence[],
   screenshotEmbeds: ScreenshotEmbeds
 ): string {
-  const nodes = violation.nodes
+  const nodes = result.nodes
     .map((node, nodeIndex) => renderNode(node, evidence[nodeIndex], screenshotEmbeds))
     .join("\n");
+  const label = resultType === "incomplete" ? "Incomplete" : "Violation";
 
   return [
-    '<article class="violation">',
-    `<h3>${escapeHtml(violation.id)}: ${escapeHtml(violation.help)}</h3>`,
-    `<p class="impact">Impact: ${escapeHtml(violation.impact ?? "unknown")}</p>`,
-    `<p><a href="${escapeAttribute(violation.helpUrl)}">${escapeHtml(violation.helpUrl)}</a></p>`,
-    `<p>${escapeHtml(violation.description)}</p>`,
+    `<article class="rule-result ${escapeAttribute(resultType)}">`,
+    `<h4>${escapeHtml(label)}: ${escapeHtml(result.id)}: ${escapeHtml(result.help)}</h4>`,
+    `<p class="impact">Impact: ${escapeHtml(result.impact ?? "unknown")}</p>`,
+    `<p><a href="${escapeAttribute(result.helpUrl)}">${escapeHtml(result.helpUrl)}</a></p>`,
+    `<p>${escapeHtml(result.description)}</p>`,
     nodes,
     "</article>"
   ].join("\n");
+}
+
+function isEvidenceForResult(
+  evidence: AxeNodeEvidence,
+  resultType: AxeRuleResultType,
+  ruleId: string
+): boolean {
+  return evidence.resultType === resultType && evidence.violationId === ruleId;
 }
 
 function renderNode(

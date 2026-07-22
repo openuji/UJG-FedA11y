@@ -13,6 +13,7 @@ import {
   type AxeNode,
   type AxeNodeEvidence,
   type AxeResults,
+  type AxeRuleResultType,
   type AxeRuleResult,
   type AxeScanEvidence
 } from "../shared/types.js";
@@ -32,7 +33,7 @@ type CollectScanEvidenceInput = {
 export async function collectScanEvidence(
   input: CollectScanEvidenceInput
 ): Promise<AxeScanEvidence> {
-  if (input.results.violations.length === 0) {
+  if (input.results.violations.length === 0 && input.results.incomplete.length === 0) {
     return {
       nodes: []
     };
@@ -44,7 +45,17 @@ export async function collectScanEvidence(
   try {
     for (const violation of input.results.violations) {
       for (const [nodeIndex, node] of violation.nodes.entries()) {
-        nodes.push(await createNodeEvidence(input, violation, node, nodeIndex, highlightAvailable));
+        nodes.push(
+          await createNodeEvidence(input, "violation", violation, node, nodeIndex, highlightAvailable)
+        );
+      }
+    }
+
+    for (const incomplete of input.results.incomplete) {
+      for (const [nodeIndex, node] of incomplete.nodes.entries()) {
+        nodes.push(
+          await createNodeEvidence(input, "incomplete", incomplete, node, nodeIndex, highlightAvailable)
+        );
       }
     }
 
@@ -58,13 +69,14 @@ export async function collectScanEvidence(
 
 async function createNodeEvidence(
   input: CollectScanEvidenceInput,
+  resultType: AxeRuleResultType,
   violation: AxeRuleResult,
   node: AxeNode,
   nodeIndex: number,
   highlightAvailable: boolean
 ): Promise<AxeNodeEvidence> {
   const selector = primarySelector(node);
-  const baseEvidence = createBaseEvidence(input.page, violation, node, nodeIndex, selector);
+  const baseEvidence = createBaseEvidence(input.page, resultType, violation, node, nodeIndex, selector);
 
   if (!selector) {
     return baseEvidence;
@@ -108,12 +120,14 @@ async function createNodeEvidence(
 
 function createBaseEvidence(
   page: Page,
+  resultType: AxeRuleResultType,
   violation: AxeRuleResult,
   node: AxeNode,
   nodeIndex: number,
   selector: string | undefined
 ): AxeNodeEvidence {
   return {
+    resultType,
     violationId: violation.id,
     nodeIndex,
     url: page.url(),

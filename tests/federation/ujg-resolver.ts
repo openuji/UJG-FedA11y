@@ -36,8 +36,20 @@ export type ResolvedObservationBinding = {
   surfaceId: string;
   eventId: string;
   eventLabel?: string;
+  requiredInputModalityProfiles: ResolvedInputModalityProfile[];
   locators: ResolvedAccessibleLocator[];
   surfaceInstanceResolver?: ResolvedSurfaceInstanceResolver;
+};
+
+export type ResolvedInputModality = {
+  id: string;
+  label?: string;
+};
+
+export type ResolvedInputModalityProfile = {
+  id: string;
+  label?: string;
+  modalities: ResolvedInputModality[];
 };
 
 export type ResolvedStateObservation = {
@@ -53,6 +65,24 @@ export type ResolvedStatePresenceTarget = {
   bindings: ResolvedObservationBinding[];
 };
 
+export type ResolvedTransitionActivation = {
+  transitionId: string;
+  transitionLabel?: string;
+  fromStateId: string;
+  fromStateLabel?: string;
+  toStateId: string;
+  toStateLabel?: string;
+  surfaceId: string;
+  surfaceLabel?: string;
+  requiredInputModalityProfiles: ResolvedInputModalityProfile[];
+  bindings: ResolvedObservationBinding[];
+};
+
+export type ResolvedTransitionActivationTarget = {
+  activation: ResolvedTransitionActivation;
+  bindings: ResolvedObservationBinding[];
+};
+
 type ResolvedSurfaceInstanceResolver = {
   id: string;
   label?: string;
@@ -62,6 +92,7 @@ type ResolvedSurfaceInstanceResolver = {
 type NodeIndex = Map<string, UjgNode>;
 
 const presenceObservationEventId = "urn:observation-event:presence";
+const buttonActivationObservationEventId = "urn:observation-event:button-activation";
 
 const ujgPath = resolve(
   import.meta.dirname,
@@ -118,12 +149,70 @@ export function resolveStatePresenceTarget(
   };
 }
 
+export function resolveTransitionActivationTarget(
+  document: UjgDocument,
+  transitionId: string,
+  eventId = buttonActivationObservationEventId
+): ResolvedTransitionActivationTarget {
+  const index = indexNodes(document);
+  const transition = requireNode(index, transitionId, "Transition");
+  const fromState = requireNode(
+    index,
+    requiredString(transition.from, `${transitionId}.from`),
+    "State"
+  );
+  const toState = requireNode(index, requiredString(transition.to, `${transitionId}.to`), "State");
+  const surface = requireSingleSurfaceForGraphNode(document.nodes, transitionId);
+  const event = requireNode(index, eventId, "ObservationEvent");
+  const requiredInputModalityProfiles = resolveRequiredInputModalityProfiles(index, event);
+  const bindings = observationBindingsForSurface(document.nodes, surface["@id"])
+    .filter((binding) => isEventBinding(index, binding, eventId))
+    .map((binding) => resolveObservationBinding(index, binding));
+
+  if (bindings.length === 0) {
+    throw new Error(`No ${eventId} ObservationBinding found for surface ${surface["@id"]}`);
+  }
+
+  return {
+    activation: {
+      transitionId: transition["@id"],
+      transitionLabel: optionalString(transition.label),
+      fromStateId: fromState["@id"],
+      fromStateLabel: optionalString(fromState.label),
+      toStateId: toState["@id"],
+      toStateLabel: optionalString(toState.label),
+      surfaceId: surface["@id"],
+      surfaceLabel: optionalString(surface.label),
+      requiredInputModalityProfiles,
+      bindings
+    },
+    bindings
+  };
+}
+
 export function describeResolvedObservation(observation: ResolvedStateObservation): string {
   const bindingLines = observation.bindings.map(describeBinding).join("\n");
 
   return [
     `State: ${observation.stateId} (${observation.stateLabel ?? "unlabeled"})`,
     `Surface: ${observation.surfaceId} (${observation.surfaceLabel ?? "unlabeled"})`,
+    bindingLines
+  ].join("\n");
+}
+
+export function describeResolvedTransitionActivation(
+  activation: ResolvedTransitionActivation
+): string {
+  const bindingLines = activation.bindings.map(describeBinding).join("\n");
+
+  return [
+    `Transition: ${activation.transitionId} (${activation.transitionLabel ?? "unlabeled"})`,
+    `From: ${activation.fromStateId} (${activation.fromStateLabel ?? "unlabeled"})`,
+    `To: ${activation.toStateId} (${activation.toStateLabel ?? "unlabeled"})`,
+    `Surface: ${activation.surfaceId} (${activation.surfaceLabel ?? "unlabeled"})`,
+    `Required input modality profiles: ${describeInputModalityProfiles(
+      activation.requiredInputModalityProfiles
+    )}`,
     bindingLines
   ].join("\n");
 }
@@ -139,6 +228,9 @@ function describeBinding(binding: ResolvedObservationBinding): string {
   return [
     `Binding: ${binding.id} (${binding.label ?? "unlabeled"})`,
     `  Event: ${binding.eventId} (${binding.eventLabel ?? "unlabeled"})`,
+    `  Required input modality profiles: ${describeInputModalityProfiles(
+      binding.requiredInputModalityProfiles
+    )}`,
     `  Locators:`,
     locators,
     resolver
@@ -155,6 +247,20 @@ function describeLocator(locator: ResolvedAccessibleLocator): string {
 
 function describeFeature(feature: AccessibleFeature): string {
   return `${feature.name}=${feature.value}`;
+}
+
+function describeInputModalityProfiles(profiles: ResolvedInputModalityProfile[]): string {
+  if (profiles.length === 0) {
+    return "none";
+  }
+
+  return profiles.map(describeInputModalityProfile).join(", ");
+}
+
+function describeInputModalityProfile(profile: ResolvedInputModalityProfile): string {
+  const modalities = profile.modalities.map((modality) => modality.id).join("+");
+
+  return `${profile.id}${modalities ? ` [${modalities}]` : ""}`;
 }
 
 function indexNodes(document: UjgDocument): NodeIndex {
@@ -194,9 +300,13 @@ function observationBindingsForSurface(nodes: UjgNode[], surfaceId: string): Ujg
 }
 
 function isPresenceBinding(index: NodeIndex, binding: UjgNode): boolean {
+  return isEventBinding(index, binding, presenceObservationEventId);
+}
+
+function isEventBinding(index: NodeIndex, binding: UjgNode, expectedEventId: string): boolean {
   const eventId = requiredString(binding.observationEventRef, `${binding["@id"]}.observationEventRef`);
 
-  if (eventId !== presenceObservationEventId) {
+  if (eventId !== expectedEventId) {
     return false;
   }
 
@@ -216,8 +326,48 @@ function resolveObservationBinding(index: NodeIndex, binding: UjgNode): Resolved
     surfaceId: requiredString(binding.observeSurfaceRef, `${binding["@id"]}.observeSurfaceRef`),
     eventId,
     eventLabel: optionalString(event.label),
+    requiredInputModalityProfiles: resolveRequiredInputModalityProfiles(index, event),
     locators: locatorRefs.map((locatorRef) => resolveAccessibleLocator(index, locatorRef)),
     surfaceInstanceResolver: resolveSurfaceInstanceResolver(index, binding.surfaceInstanceResolverRef)
+  };
+}
+
+function resolveRequiredInputModalityProfiles(
+  index: NodeIndex,
+  event: UjgNode
+): ResolvedInputModalityProfile[] {
+  return optionalStringArray(event.requiredInputModalityProfileRefs).map((profileRef) =>
+    resolveInputModalityProfile(index, profileRef)
+  );
+}
+
+function resolveInputModalityProfile(
+  index: NodeIndex,
+  profileId: string
+): ResolvedInputModalityProfile {
+  const profile = requireNode(index, profileId, "InputModalityProfile");
+  const modalityRefs = requiredStringArray(
+    profile.inputModalityRefs,
+    `${profileId}.inputModalityRefs`
+  );
+
+  if (modalityRefs.length === 0) {
+    throw new Error(`InputModalityProfile ${profileId} must reference at least one InputModality`);
+  }
+
+  return {
+    id: profile["@id"],
+    label: optionalString(profile.label),
+    modalities: modalityRefs.map((modalityRef) => resolveInputModality(index, modalityRef))
+  };
+}
+
+function resolveInputModality(index: NodeIndex, modalityId: string): ResolvedInputModality {
+  const modality = requireNode(index, modalityId, "InputModality");
+
+  return {
+    id: modality["@id"],
+    label: optionalString(modality.label)
   };
 }
 

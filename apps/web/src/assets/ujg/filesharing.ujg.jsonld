@@ -423,13 +423,13 @@
     {
       "@type": "MessageBundle",
       "@id": "urn:message:share-action",
-      "label": "Share action",
+      "label": "Sharing options action",
       "namespace": "nextcloud.actions",
       "messageKey": "actions.share",
       "defaultLocale": "en",
       "locales": {
         "en": {
-          "value": "Share"
+          "value": "Sharing options"
         }
       }
     },
@@ -503,8 +503,7 @@
       "@type": "AccessibleLocator",
       "@id": "urn:locator:sharing-panel",
       "label": "Sharing panel",
-      "role": "complementary",
-      "accessibleNameRef": "urn:message:sharing-panel"
+      "role": "complementary"
     },
     {
       "@type": "AccessibleLocator",
