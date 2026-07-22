@@ -68,6 +68,8 @@ export type ResolvedStatePresenceTarget = {
 export type ResolvedTransitionActivation = {
   transitionId: string;
   transitionLabel?: string;
+  eventId: string;
+  eventLabel?: string;
   fromStateId: string;
   fromStateLabel?: string;
   toStateId: string;
@@ -177,6 +179,8 @@ export function resolveTransitionActivationTarget(
     activation: {
       transitionId: transition["@id"],
       transitionLabel: optionalString(transition.label),
+      eventId: event["@id"],
+      eventLabel: optionalString(event.label),
       fromStateId: fromState["@id"],
       fromStateLabel: optionalString(fromState.label),
       toStateId: toState["@id"],
@@ -207,6 +211,7 @@ export function describeResolvedTransitionActivation(
 
   return [
     `Transition: ${activation.transitionId} (${activation.transitionLabel ?? "unlabeled"})`,
+    `Event: ${activation.eventId} (${activation.eventLabel ?? "unlabeled"})`,
     `From: ${activation.fromStateId} (${activation.fromStateLabel ?? "unlabeled"})`,
     `To: ${activation.toStateId} (${activation.toStateLabel ?? "unlabeled"})`,
     `Surface: ${activation.surfaceId} (${activation.surfaceLabel ?? "unlabeled"})`,

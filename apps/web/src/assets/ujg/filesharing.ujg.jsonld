@@ -156,11 +156,7 @@
         "urn:composite:bob-federated-access-established"
       ],
       "transitionRefs": [
-        "urn:transition:bob-continues-after-share-accepted",
-        "urn:transition:bob-ends-after-share-revoked"
-      ],
-      "exitRefs": [
-        "urn:exit:bob-remote-share-revoked-out-of-scope"
+        "urn:transition:bob-continues-after-share-accepted"
       ]
     },
     {
@@ -187,12 +183,10 @@
         "urn:state:bob-incoming-share-visible"
       ],
       "transitionRefs": [
-        "urn:transition:bob-accepts-share",
-        "urn:transition:bob-share-revoked-before-acceptance"
+        "urn:transition:bob-accepts-share"
       ],
       "exitRefs": [
-        "urn:exit:bob-share-accepted",
-        "urn:exit:bob-share-revoked"
+        "urn:exit:bob-share-accepted"
       ]
     },
     {
@@ -218,11 +212,6 @@
       "label": "Remote share accepted"
     },
     {
-      "@type": "JourneyExit",
-      "@id": "urn:exit:bob-share-revoked",
-      "label": "Remote share revoked before acceptance"
-    },
-    {
       "@type": "Transition",
       "@id": "urn:transition:bob-accepts-share",
       "label": "Bob accepts the incoming share",
@@ -235,13 +224,6 @@
       "@id": "urn:surface:bob-accepts-share",
       "label": "Bob accept-share action",
       "graphNodeRef": "urn:transition:bob-accepts-share"
-    },
-    {
-      "@type": "Transition",
-      "@id": "urn:transition:bob-share-revoked-before-acceptance",
-      "label": "The remote share is revoked before Bob accepts it",
-      "from": "urn:state:bob-incoming-share-visible",
-      "to": "urn:exit:bob-share-revoked"
     },
     {
       "@type": "CompositeState",
@@ -307,11 +289,7 @@
       "label": "Bob open-file action",
       "graphNodeRef": "urn:transition:bob-opens-accepted-file"
     },
-    {
-      "@type": "JourneyExit",
-      "@id": "urn:exit:bob-remote-share-revoked-out-of-scope",
-      "label": "Bob remote-share path ended because the offer was revoked"
-    },
+   
     {
       "@type": "Transition",
       "@id": "urn:transition:bob-continues-after-share-accepted",
@@ -320,14 +298,6 @@
       "fromExitRef": "urn:exit:bob-share-accepted",
       "to": "urn:composite:bob-federated-access-established",
       "toEntryRef": "urn:entry:bob-federated-access-established"
-    },
-    {
-      "@type": "Transition",
-      "@id": "urn:transition:bob-ends-after-share-revoked",
-      "label": "Bob's modeled path ends after the offer is revoked",
-      "from": "urn:composite:bob-remote-share-offer",
-      "fromExitRef": "urn:exit:bob-share-revoked",
-      "to": "urn:exit:bob-remote-share-revoked-out-of-scope"
     },
     {
       "@type": "Touchpoint",
@@ -416,7 +386,7 @@
       "defaultLocale": "en",
       "locales": {
         "en": {
-          "value": "Name, federated cloud ID or email address"
+          "value": "Enter external recipients"
         }
       }
     },
@@ -519,9 +489,6 @@
       "role": "option",
       "accessibleFeatureRefs": [
         "urn:feature:remote-recipient-instance-key"
-      ],
-      "contextLocatorRefs": [
-        "urn:locator:sharing-panel"
       ]
     },
     {
@@ -577,7 +544,7 @@
       "@type": "AccessibleLocator",
       "@id": "urn:locator:remote-recipient-input",
       "label": "Remote recipient input",
-      "role": "textbox",
+      "role": "combobox",
       "accessibleNameRef": "urn:message:remote-recipient-input",
       "contextLocatorRefs": [
         "urn:locator:sharing-panel"

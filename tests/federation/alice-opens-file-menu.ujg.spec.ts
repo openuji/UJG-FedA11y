@@ -5,10 +5,17 @@ import {
 } from "@ujg-fed-a11y/playwright-axe-audit";
 import { expect, test } from "@playwright/test";
 
-import { aliceUser, logIn, openFilesApp } from "./nextcloud-test-helpers.js";
 import {
-  activateWithInputModalityProfile,
-  toPlaywrightObservationLocator
+  aliceUser,
+  federatedRecipient,
+  logIn,
+  openFilesApp
+} from "./nextcloud-test-helpers.js";
+import {
+  activateResolvedTransition,
+  resolveTransitionActivationCommand,
+  toPlaywrightObservationLocator,
+  type PlaywrightTransitionCommand
 } from "./playwright-ujg-locator.js";
 import {
   describeResolvedObservation,
@@ -18,107 +25,209 @@ import {
   resolveTransitionActivationTarget,
   type ResolvedInputModalityProfile,
   type ResolvedStatePresenceTarget,
+  type ResolvedTransitionActivation,
   type ResolvedTransitionActivationTarget
 } from "./ujg-resolver.js";
 
 const aliceFilesReadyStateId = "urn:state:alice-files-ready";
 const aliceOpensFileMenuTransitionId = "urn:transition:alice-opens-file-menu";
 const aliceSharePanelOpenStateId = "urn:state:alice-share-panel-open";
+const aliceEntersRemoteBobTransitionId = "urn:transition:alice-enters-remote-bob";
+const aliceRemoteRecipientEnteredStateId = "urn:state:alice-remote-recipient-entered";
+const textEntryActivationObservationEventId = "urn:observation-event:text-entry-activation";
+const keyboardInputModalityProfileId = "urn:input-modality-profile:keyboard";
 
-const inputModalityProfiles = resolveTransitionActivationTarget(
+const openFileMenuInputModalityProfiles = resolveTransitionActivationTarget(
   loadFilesharingUjg(),
   aliceOpensFileMenuTransitionId
 ).activation.requiredInputModalityProfiles;
 
-if (inputModalityProfiles.length === 0) {
+if (openFileMenuInputModalityProfiles.length === 0) {
   throw new Error(
     `Transition ${aliceOpensFileMenuTransitionId} must declare at least one required input modality profile`
   );
 }
 
-for (const inputModalityProfile of inputModalityProfiles) {
-  test(`follows Alice's first UJG transition with ${inputModalityProfile.label ?? inputModalityProfile.id}`, async ({
-    page
-  }, testInfo) => {
+for (const openFileMenuInputModalityProfile of openFileMenuInputModalityProfiles) {
+  test(`follows Alice's first UJG transitions with ${
+    openFileMenuInputModalityProfile.label ?? openFileMenuInputModalityProfile.id
+  }`, async ({ page }, testInfo) => {
     const document = loadFilesharingUjg();
-    const source = resolveStatePresenceTarget(document, aliceFilesReadyStateId);
-    const transition = resolveTransitionActivationTarget(document, aliceOpensFileMenuTransitionId);
-    const target = resolveStatePresenceTarget(document, aliceSharePanelOpenStateId);
-    const activeInputModalityProfile = requireInputModalityProfile(
-      transition.activation.requiredInputModalityProfiles,
-      inputModalityProfile.id
+    const filesReady = resolveStatePresenceTarget(document, aliceFilesReadyStateId);
+    const openFileMenuTransition = resolveTransitionActivationTarget(
+      document,
+      aliceOpensFileMenuTransitionId
+    );
+    const sharePanelOpen = resolveStatePresenceTarget(document, aliceSharePanelOpenStateId);
+    const enterRemoteBobTransition = resolveTransitionActivationTarget(
+      document,
+      aliceEntersRemoteBobTransitionId,
+      textEntryActivationObservationEventId
+    );
+    const remoteRecipientEntered = resolveStatePresenceTarget(
+      document,
+      aliceRemoteRecipientEnteredStateId
+    );
+    const activeOpenFileMenuInputModalityProfile = requireInputModalityProfile(
+      openFileMenuTransition.activation.requiredInputModalityProfiles,
+      openFileMenuInputModalityProfile.id
+    );
+    const activeEnterRemoteBobInputModalityProfile = requireInputModalityProfile(
+      enterRemoteBobTransition.activation.requiredInputModalityProfiles,
+      keyboardInputModalityProfileId
+    );
+    const openFileMenuCommand = resolveTransitionActivationCommand(
+      openFileMenuTransition.activation,
+      activeOpenFileMenuInputModalityProfile
+    );
+    const enterRemoteBobCommand = resolveTransitionActivationCommand(
+      enterRemoteBobTransition.activation,
+      activeEnterRemoteBobInputModalityProfile
     );
 
-    expect(transition.activation.fromStateId).toBe(source.observation.stateId);
-    expect(transition.activation.toStateId).toBe(target.observation.stateId);
+    expect(openFileMenuTransition.activation.fromStateId).toBe(filesReady.observation.stateId);
+    expect(openFileMenuTransition.activation.toStateId).toBe(sharePanelOpen.observation.stateId);
+    expect(enterRemoteBobTransition.activation.fromStateId).toBe(
+      sharePanelOpen.observation.stateId
+    );
+    expect(enterRemoteBobTransition.activation.toStateId).toBe(
+      remoteRecipientEntered.observation.stateId
+    );
 
     testInfo.annotations.push(
       {
         type: "ujg-source-resolution",
-        description: describeResolvedObservation(source.observation)
+        description: describeResolvedObservation(filesReady.observation)
       },
       {
-        type: "ujg-transition-resolution",
-        description: describeResolvedTransitionActivation(transition.activation)
+        type: "ujg-open-file-menu-transition-resolution",
+        description: describeResolvedTransitionActivation(openFileMenuTransition.activation)
       },
       {
-        type: "ujg-target-resolution",
-        description: describeResolvedObservation(target.observation)
+        type: "ujg-share-panel-open-resolution",
+        description: describeResolvedObservation(sharePanelOpen.observation)
+      },
+      {
+        type: "ujg-enter-remote-bob-transition-resolution",
+        description: describeResolvedTransitionActivation(enterRemoteBobTransition.activation)
+      },
+      {
+        type: "ujg-remote-recipient-entered-resolution",
+        description: describeResolvedObservation(remoteRecipientEntered.observation)
       }
     );
 
     await logIn(page, aliceUser);
     await openFilesApp(page, aliceUser);
 
-    const sourceLocator = toPlaywrightObservationLocator(page, source.bindings);
-    await expect(sourceLocator).toHaveCount(1);
-    await expect(sourceLocator).toBeVisible();
+    const filesReadyLocator = toPlaywrightObservationLocator(page, filesReady.bindings);
+    await expect(filesReadyLocator).toHaveCount(1);
+    await expect(filesReadyLocator).toBeVisible();
 
-    const transitionLocator = toPlaywrightObservationLocator(page, transition.bindings);
-    await expect(transitionLocator).toHaveCount(1);
-    await expect(transitionLocator).toBeVisible();
+    const openFileMenuLocator = toPlaywrightObservationLocator(page, openFileMenuTransition.bindings);
+    await expect(openFileMenuLocator).toHaveCount(1);
+    await expect(openFileMenuLocator).toBeVisible();
 
-    const transitionAxeReport = await runAxeAudit({
+    const openFileMenuAxeReport = await runAxeAudit({
       page,
       testInfo,
-      resolvedLocator: transitionLocator,
-      auditId: `alice-opens-file-menu-${inputModalityProfileAuditSegment(
-        activeInputModalityProfile
+      resolvedLocator: openFileMenuLocator,
+      auditId: `alice-opens-file-menu-${activationAuditSegment(
+        openFileMenuTransition.activation,
+        openFileMenuCommand
       )}`,
-      metadata: axeMetadataForTransition(transition, activeInputModalityProfile)
+      metadata: axeMetadataForTransition(openFileMenuTransition, openFileMenuCommand)
     });
 
     expect(
-      shouldFailForAxeViolations(transitionAxeReport),
-      axeFailureMessage(transitionAxeReport)
+      shouldFailForAxeViolations(openFileMenuAxeReport),
+      axeFailureMessage(openFileMenuAxeReport)
     ).toBe(false);
 
-    await activateWithInputModalityProfile(transitionLocator, activeInputModalityProfile);
+    await activateResolvedTransition(
+      openFileMenuLocator,
+      openFileMenuTransition.activation,
+      openFileMenuCommand
+    );
 
-    const targetLocator = toPlaywrightObservationLocator(page, target.bindings);
-    await expect(targetLocator).toHaveCount(1);
-    await expect(targetLocator).toBeVisible();
+    const sharePanelOpenLocator = toPlaywrightObservationLocator(page, sharePanelOpen.bindings);
+    await expect(sharePanelOpenLocator).toHaveCount(1);
+    await expect(sharePanelOpenLocator).toBeVisible();
 
-    const targetAxeReport = await runAxeAudit({
+    const sharePanelOpenAxeReport = await runAxeAudit({
       page,
       testInfo,
-      resolvedLocator: targetLocator,
-      auditId: `alice-share-panel-open-${inputModalityProfileAuditSegment(
-        activeInputModalityProfile
+      resolvedLocator: sharePanelOpenLocator,
+      auditId: `alice-share-panel-open-${activationAuditSegment(
+        openFileMenuTransition.activation,
+        openFileMenuCommand
       )}`,
-      metadata: axeMetadataForState(target, activeInputModalityProfile)
+      metadata: axeMetadataForState(sharePanelOpen, openFileMenuCommand)
     });
 
     expect(
-      shouldFailForAxeViolations(targetAxeReport),
-      axeFailureMessage(targetAxeReport)
+      shouldFailForAxeViolations(sharePanelOpenAxeReport),
+      axeFailureMessage(sharePanelOpenAxeReport)
+    ).toBe(false);
+
+    const enterRemoteBobLocator = toPlaywrightObservationLocator(
+      page,
+      enterRemoteBobTransition.bindings
+    );
+    await expect(enterRemoteBobLocator).toHaveCount(1);
+    await expect(enterRemoteBobLocator).toBeVisible();
+
+    const enterRemoteBobAxeReport = await runAxeAudit({
+      page,
+      testInfo,
+      resolvedLocator: enterRemoteBobLocator,
+      auditId: `alice-enters-remote-bob-${activationAuditSegment(
+        enterRemoteBobTransition.activation,
+        enterRemoteBobCommand
+      )}`,
+      metadata: axeMetadataForTransition(enterRemoteBobTransition, enterRemoteBobCommand)
+    });
+
+    expect(
+      shouldFailForAxeViolations(enterRemoteBobAxeReport),
+      axeFailureMessage(enterRemoteBobAxeReport)
+    ).toBe(false);
+
+    await activateResolvedTransition(
+      enterRemoteBobLocator,
+      enterRemoteBobTransition.activation,
+      enterRemoteBobCommand,
+      { federatedRecipient }
+    );
+
+    const remoteRecipientEnteredLocator = toPlaywrightObservationLocator(
+      page,
+      remoteRecipientEntered.bindings
+    );
+    await expect(remoteRecipientEnteredLocator).toHaveCount(1);
+    await expect(remoteRecipientEnteredLocator).toBeVisible();
+
+    const remoteRecipientEnteredAxeReport = await runAxeAudit({
+      page,
+      testInfo,
+      resolvedLocator: remoteRecipientEnteredLocator,
+      auditId: `alice-remote-recipient-entered-${activationAuditSegment(
+        enterRemoteBobTransition.activation,
+        enterRemoteBobCommand
+      )}`,
+      metadata: axeMetadataForState(remoteRecipientEntered, enterRemoteBobCommand)
+    });
+
+    expect(
+      shouldFailForAxeViolations(remoteRecipientEnteredAxeReport),
+      axeFailureMessage(remoteRecipientEnteredAxeReport)
     ).toBe(false);
   });
 }
 
 function axeMetadataForState(
   target: ResolvedStatePresenceTarget,
-  inputModalityProfile: ResolvedInputModalityProfile
+  command: PlaywrightTransitionCommand
 ) {
   return {
     ujg: {
@@ -126,7 +235,8 @@ function axeMetadataForState(
       ...(target.observation.stateLabel ? { stateLabel: target.observation.stateLabel } : {}),
       surfaceId: target.observation.surfaceId,
       ...(target.observation.surfaceLabel ? { surfaceLabel: target.observation.surfaceLabel } : {}),
-      ...inputModalityProfileMetadata(inputModalityProfile),
+      eventId: command.eventId,
+      ...commandMetadata(command),
       bindings: bindingsMetadata(target.bindings)
     }
   };
@@ -134,7 +244,7 @@ function axeMetadataForState(
 
 function axeMetadataForTransition(
   target: ResolvedTransitionActivationTarget,
-  inputModalityProfile: ResolvedInputModalityProfile
+  command: PlaywrightTransitionCommand
 ) {
   return {
     ujg: {
@@ -142,26 +252,42 @@ function axeMetadataForTransition(
       ...(target.activation.transitionLabel
         ? { transitionLabel: target.activation.transitionLabel }
         : {}),
+      eventId: target.activation.eventId,
+      ...(target.activation.eventLabel ? { eventLabel: target.activation.eventLabel } : {}),
       fromStateId: target.activation.fromStateId,
       toStateId: target.activation.toStateId,
       surfaceId: target.activation.surfaceId,
       ...(target.activation.surfaceLabel ? { surfaceLabel: target.activation.surfaceLabel } : {}),
-      ...inputModalityProfileMetadata(inputModalityProfile),
+      ...commandMetadata(command),
       bindings: bindingsMetadata(target.bindings)
     }
+  };
+}
+
+function commandMetadata(command: PlaywrightTransitionCommand) {
+  return {
+    adapterCommandId: command.id,
+    ...inputModalityProfileMetadata(command.inputModalityProfile)
   };
 }
 
 function bindingsMetadata(bindings: ResolvedStatePresenceTarget["bindings"]) {
   return bindings.map((binding) => ({
     bindingId: binding.id,
+    eventId: binding.eventId,
+    ...(binding.eventLabel ? { eventLabel: binding.eventLabel } : {}),
     requiredInputModalityProfiles: binding.requiredInputModalityProfiles.map(
       inputModalityProfileMetadata
     ),
     locators: binding.locators.map((locator) => ({
       locatorId: locator.id,
       ...(locator.role ? { role: locator.role } : {}),
-      ...(locator.accessibleName ? { accessibleName: locator.accessibleName } : {})
+      ...(locator.accessibleName ? { accessibleName: locator.accessibleName } : {}),
+      features: locator.features.map((feature) => ({
+        featureId: feature.id,
+        featureName: feature.name,
+        featureValue: feature.value
+      }))
     }))
   }));
 }
@@ -187,9 +313,20 @@ function requireInputModalityProfile(
   return profile;
 }
 
-function inputModalityProfileAuditSegment(profile: ResolvedInputModalityProfile): string {
-  return profile.id
-    .replace(/^urn:input-modality-profile:/, "")
+function activationAuditSegment(
+  activation: ResolvedTransitionActivation,
+  command: PlaywrightTransitionCommand
+): string {
+  return [
+    auditSegment(activation.eventId),
+    auditSegment(command.inputModalityProfile.id),
+    auditSegment(command.id)
+  ].join("-");
+}
+
+function auditSegment(value: string): string {
+  return value
+    .replace(/^urn:/, "")
     .replace(/[^a-z0-9-]+/gi, "-")
     .toLowerCase();
 }

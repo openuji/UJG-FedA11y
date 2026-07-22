@@ -4,7 +4,8 @@ import {
   type AccessibleFeature,
   type ResolvedAccessibleLocator,
   type ResolvedInputModalityProfile,
-  type ResolvedObservationBinding
+  type ResolvedObservationBinding,
+  type ResolvedTransitionActivation
 } from "./ujg-resolver.js";
 
 type LocatorRoot = Page | Locator;
@@ -20,6 +21,23 @@ const featureAdapters: FeatureAdapter[] = [
 
 const keyboardInputModalityId = "urn:input-modality:keyboard";
 const pointerInputModalityId = "urn:input-modality:pointer";
+const buttonActivationObservationEventId = "urn:observation-event:button-activation";
+const textEntryActivationObservationEventId = "urn:observation-event:text-entry-activation";
+
+export type PlaywrightTransitionCommandId =
+  | "pointer-click"
+  | "keyboard-space"
+  | "keyboard-text-entry";
+
+export type PlaywrightTransitionCommand = {
+  id: PlaywrightTransitionCommandId;
+  eventId: string;
+  inputModalityProfile: ResolvedInputModalityProfile;
+};
+
+export type PlaywrightTransitionValues = {
+  federatedRecipient?: string;
+};
 
 export function toPlaywrightLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): Locator {
   const scopedRoot = locator.contexts.reduce(
@@ -45,31 +63,60 @@ export function toPlaywrightObservationLocator(
   return bindings.map((binding) => toPlaywrightBindingLocator(root, binding)).reduce((a, b) => a.or(b));
 }
 
-export async function activateWithInputModalityProfile(
-  locator: Locator,
+export function resolveTransitionActivationCommand(
+  activation: ResolvedTransitionActivation,
   profile: ResolvedInputModalityProfile
+): PlaywrightTransitionCommand {
+  const modality = requireSingleInputModality(activation, profile);
+
+  switch (`${activation.eventId} ${modality.id}`) {
+    case `${buttonActivationObservationEventId} ${pointerInputModalityId}`:
+      return {
+        id: "pointer-click",
+        eventId: activation.eventId,
+        inputModalityProfile: profile
+      };
+    case `${buttonActivationObservationEventId} ${keyboardInputModalityId}`:
+      return {
+        id: "keyboard-space",
+        eventId: activation.eventId,
+        inputModalityProfile: profile
+      };
+    case `${textEntryActivationObservationEventId} ${keyboardInputModalityId}`:
+      return {
+        id: "keyboard-text-entry",
+        eventId: activation.eventId,
+        inputModalityProfile: profile
+      };
+    default:
+      throw unsupportedActivationError(activation, profile);
+  }
+}
+
+export async function activateResolvedTransition(
+  locator: Locator,
+  activation: ResolvedTransitionActivation,
+  command: PlaywrightTransitionCommand,
+  values: PlaywrightTransitionValues = {}
 ): Promise<void> {
-  if (profile.modalities.length !== 1) {
+  if (command.eventId !== activation.eventId) {
     throw new Error(
-      `InputModalityProfile ${profile.id} must define exactly one modality for this Playwright adapter, got ${describeInputModalities(
-        profile
-      )}`
+      `Transition command ${command.id} was resolved for ${command.eventId}, but ${activation.transitionId} uses ${activation.eventId}`
     );
   }
 
-  const modality = profile.modalities[0];
-
-  switch (modality.id) {
-    case pointerInputModalityId:
+  switch (command.id) {
+    case "pointer-click":
       await locator.click();
       return;
-    case keyboardInputModalityId:
+    case "keyboard-space":
       await locator.press("Space");
       return;
+    case "keyboard-text-entry":
+      await locator.pressSequentially(requiredTransitionValue(values.federatedRecipient, command));
+      return;
     default:
-      throw new Error(
-        `Unsupported InputModalityProfile ${profile.id} with modality ${modality.id}`
-      );
+      assertNever(command.id);
   }
 }
 
@@ -98,6 +145,10 @@ function getRoleLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): 
 }
 
 function applyFeature(root: LocatorRoot, locator: Locator, feature: AccessibleFeature): Locator {
+  if (feature.value === "*") {
+    return locator;
+  }
+
   const adapter = featureAdapters.find((candidate) => candidate.featureName === feature.name);
 
   if (!adapter) {
@@ -113,6 +164,43 @@ function describeInputModalities(profile: ResolvedInputModalityProfile): string 
   }
 
   return profile.modalities.map((modality) => modality.id).join(", ");
+}
+
+function requireSingleInputModality(
+  activation: ResolvedTransitionActivation,
+  profile: ResolvedInputModalityProfile
+): ResolvedInputModalityProfile["modalities"][number] {
+  if (profile.modalities.length !== 1) {
+    throw unsupportedActivationError(activation, profile);
+  }
+
+  return profile.modalities[0];
+}
+
+function unsupportedActivationError(
+  activation: ResolvedTransitionActivation,
+  profile: ResolvedInputModalityProfile
+): Error {
+  return new Error(
+    `Unsupported transition activation for ${activation.transitionId}: event ${activation.eventId}, InputModalityProfile ${profile.id}, modalities ${describeInputModalities(
+      profile
+    )}`
+  );
+}
+
+function requiredTransitionValue(
+  value: string | undefined,
+  command: PlaywrightTransitionCommand
+): string {
+  if (!value) {
+    throw new Error(`Transition command ${command.id} requires a federatedRecipient value`);
+  }
+
+  return value;
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled transition command ${value}`);
 }
 
 function accessibleNamePattern(value: string): RegExp {

@@ -21,6 +21,9 @@ export const bobUser: NextcloudUser = {
   password: requiredEnv("NEXTCLOUD_BOB_PASSWORD")
 };
 
+export const federatedRecipient =
+  process.env.NEXTCLOUD_FEDERATED_RECIPIENT ?? `${bobUser.username}@${new URL(bobUser.url).host}`;
+
 export const nextcloudUsers: NextcloudUser[] = [aliceUser, bobUser];
 
 export async function logIn(page: Page, user: NextcloudUser): Promise<void> {

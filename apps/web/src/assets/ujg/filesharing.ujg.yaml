@@ -214,7 +214,7 @@ messageBundle:
     defaultLocale: "en"
     locales:
       en:
-        value: "Name, federated cloud ID or email address"
+        value: "Enter external recipients"
   "urn:message:share-action":
     label: "Sharing options action"
     namespace: "nextcloud.actions"
@@ -248,10 +248,10 @@ messageBundle:
       en:
         value: "Open"
   "urn:message:report-pdf-file-name":
-    label: "Report PDF file name",
-    namespace: "nextcloud.files",
-    messageKey: "files.reportPdf.fileName",
-    defaultLocale: "en",
+    label: "Report PDF file name"
+    namespace: "nextcloud.files"
+    messageKey: "files.reportPdf.fileName"
+    defaultLocale: "en"
     locales:
         en: 
           value: "report.pdf"
@@ -281,8 +281,6 @@ accessible:
       role: "option"
       accessibleFeatureRefs:
         - "urn:feature:remote-recipient-instance-key"
-      contextLocatorRefs:
-        - "urn:locator:sharing-panel"
     "urn:locator:alice-share-row":
       label: "Confirmed outgoing share row"
       role: "row"
@@ -313,7 +311,7 @@ accessible:
         - "urn:locator:alice-file-row"
     "urn:locator:remote-recipient-input":
       label: "Remote recipient input"
-      role: "textbox"
+      role: "combobox"
       accessibleNameRef: "urn:message:remote-recipient-input"
       contextLocatorRefs:
         - "urn:locator:sharing-panel"
