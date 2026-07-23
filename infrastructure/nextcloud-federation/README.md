@@ -6,7 +6,7 @@ Lean local infrastructure for testing a federated Nextcloud file-share journey w
 
 - Alice: `http://host.docker.internal:18081`
 - Bob: `http://host.docker.internal:18082`
-- Federated recipient: `bob@host.docker.internal:18082`
+- Federated recipient: `bob@http://host.docker.internal:18082`
 
 The instances use the same host name with separate published ports. Playwright on the host and Nextcloud inside Docker both resolve `host.docker.internal`, so federated backend requests do not use `localhost`.
 

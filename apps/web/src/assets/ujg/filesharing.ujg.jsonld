@@ -39,11 +39,13 @@
         "urn:state:alice-files-ready",
         "urn:state:alice-share-panel-open",
         "urn:state:alice-remote-recipient-entered",
+        "urn:state:alice-share-permissions-open",
         "urn:state:alice-share-confirmed"
       ],
       "transitionRefs": [
         "urn:transition:alice-opens-file-menu",
         "urn:transition:alice-enters-remote-bob",
+        "urn:transition:alice-selects-remote-recipient",
         "urn:transition:alice-confirms-share"
       ]
     },
@@ -88,6 +90,17 @@
     },
     {
       "@type": "State",
+      "@id": "urn:state:alice-share-permissions-open",
+      "label": "Alice share permissions are open"
+    },
+    {
+      "@type": "Surface",
+      "@id": "urn:surface:alice-share-permissions-open",
+      "label": "Alice share permissions form",
+      "graphNodeRef": "urn:state:alice-share-permissions-open"
+    },
+    {
+      "@type": "State",
       "@id": "urn:state:alice-share-confirmed",
       "label": "Alice confirmed the remote share"
     },
@@ -125,9 +138,22 @@
     },
     {
       "@type": "Transition",
+      "@id": "urn:transition:alice-selects-remote-recipient",
+      "label": "Alice selects Bob as the remote recipient",
+      "from": "urn:state:alice-remote-recipient-entered",
+      "to": "urn:state:alice-share-permissions-open"
+    },
+    {
+      "@type": "Surface",
+      "@id": "urn:surface:alice-selects-remote-recipient",
+      "label": "Alice remote recipient option",
+      "graphNodeRef": "urn:transition:alice-selects-remote-recipient"
+    },
+    {
+      "@type": "Transition",
       "@id": "urn:transition:alice-confirms-share",
       "label": "Alice confirms the share",
-      "from": "urn:state:alice-remote-recipient-entered",
+      "from": "urn:state:alice-share-permissions-open",
       "to": "urn:state:alice-share-confirmed",
       "effectRef": "urn:effect:alice-confirm-share"
     },
@@ -405,14 +431,14 @@
     },
     {
       "@type": "MessageBundle",
-      "@id": "urn:message:confirm-share-action",
-      "label": "Confirm share action",
+      "@id": "urn:message:save-share-action",
+      "label": "Save share action",
       "namespace": "nextcloud.actions",
-      "messageKey": "actions.confirmShare",
+      "messageKey": "actions.saveShare",
       "defaultLocale": "en",
       "locales": {
         "en": {
-          "value": "Share"
+          "value": "Save share"
         }
       }
     },
@@ -456,6 +482,19 @@
       }
     },
     {
+      "@type": "MessageBundle",
+      "@id": "urn:message:report-pdf-shared-row",
+      "label": "Shared file row status",
+      "namespace": "nextcloud.files",
+      "messageKey": "files.reportPdf.sharedRow",
+      "defaultLocale": "en",
+      "locales": {
+        "en": {
+          "value": "Shared"
+        }
+      }
+    },
+    {
       "@type": "AccessibleFeature",
       "@id": "urn:feature:artifact-instance-key",
       "label": "Artifact instance key",
@@ -494,14 +533,9 @@
     {
       "@type": "AccessibleLocator",
       "@id": "urn:locator:alice-share-row",
-      "label": "Confirmed outgoing share row",
+      "label": "Alice shared file row",
       "role": "row",
-      "accessibleFeatureRefs": [
-        "urn:feature:remote-recipient-instance-key"
-      ],
-      "contextLocatorRefs": [
-        "urn:locator:sharing-panel"
-      ]
+      "accessibleNameRef": "urn:message:report-pdf-shared-row"
     },
     {
       "@type": "AccessibleLocator",
@@ -552,12 +586,12 @@
     },
     {
       "@type": "AccessibleLocator",
-      "@id": "urn:locator:confirm-share-button",
-      "label": "Confirm share button",
+      "@id": "urn:locator:save-share-button",
+      "label": "Save share button",
       "role": "button",
-      "accessibleNameRef": "urn:message:confirm-share-action",
+      "accessibleNameRef": "urn:message:save-share-action",
       "contextLocatorRefs": [
-        "urn:locator:remote-recipient-entry"
+        "urn:locator:sharing-panel"
       ]
     },
     {
@@ -691,6 +725,16 @@
     },
     {
       "@type": "ObservationBinding",
+      "@id": "urn:obs:alice-share-permissions-open-presence",
+      "label": "Observe Alice share permissions open",
+      "observeSurfaceRef": "urn:surface:alice-share-permissions-open",
+      "observationEventRef": "urn:observation-event:presence",
+      "locatorRefs": [
+        "urn:locator:save-share-button"
+      ]
+    },
+    {
+      "@type": "ObservationBinding",
       "@id": "urn:obs:alice-share-confirmed-presence",
       "label": "Observe Alice share confirmed",
       "observeSurfaceRef": "urn:surface:alice-share-confirmed",
@@ -756,14 +800,24 @@
     },
     {
       "@type": "ObservationBinding",
-      "@id": "urn:obs:alice-confirms-share-activation",
-      "label": "Activate Alice share confirmation",
-      "observeSurfaceRef": "urn:surface:alice-confirms-share",
+      "@id": "urn:obs:alice-selects-remote-recipient-activation",
+      "label": "Activate Alice remote recipient option",
+      "observeSurfaceRef": "urn:surface:alice-selects-remote-recipient",
       "observationEventRef": "urn:observation-event:option-activation",
       "locatorRefs": [
         "urn:locator:remote-recipient-entry"
       ],
       "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+    },
+    {
+      "@type": "ObservationBinding",
+      "@id": "urn:obs:alice-confirms-share-activation",
+      "label": "Activate Alice share confirmation",
+      "observeSurfaceRef": "urn:surface:alice-confirms-share",
+      "observationEventRef": "urn:observation-event:button-activation",
+      "locatorRefs": [
+        "urn:locator:save-share-button"
+      ]
     },
     {
       "@type": "ObservationBinding",

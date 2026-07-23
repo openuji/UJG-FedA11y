@@ -56,6 +56,11 @@ export const runHappyPathPlan = async ({
         );
         if (!profile) throw new Error(`No keyboard profile for ${item.target.activation.transitionId}`);
         const command = resolveTransitionActivationCommand(item.target.activation, profile);
+
+        // if(item.id === "urn:transition:alice-confirms-share") {
+        //   console.log('urn:transition:alice-confirms-share', command, item, locator)
+        // }
+        
         await activateResolvedTransition(locator, item.target.activation, command, {
           federatedRecipient
         });

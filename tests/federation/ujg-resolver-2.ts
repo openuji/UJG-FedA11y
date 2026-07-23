@@ -29,10 +29,11 @@ type HappyPathPlanItemBase = {
   stepId: string;
 };
 export type HappyPathPlanItem =
-  | (HappyPathPlanItemBase & { kind: "state"; target: ResolvedStatePresenceTarget })
+  | (HappyPathPlanItemBase & { kind: "state"; target: ResolvedStatePresenceTarget; id: string })
   | (HappyPathPlanItemBase & {
       kind: "transition";
       target: ResolvedTransitionActivationTarget;
+			id: string
     })
   | (HappyPathPlanItemBase & { kind: "control-flow"; transitionId: string });
 export type HappyPathPlan = { items: HappyPathPlanItem[] };
@@ -215,8 +216,8 @@ export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
       return binding.observationEventRef
     }
     const toItem = (meta: HappyPathPlanItemBase) => (node: AnyNode): HappyPathPlanItem => {
-      if (node.kind === "state") return {...meta, kind: "state", target: resolveStatePresenceTarget(document, node["@id"])}
-      if (node.kind === "activation") return {...meta, kind: "transition", target: resolveTransitionActivationTarget(document, node["@id"], eventIdForTransition(node["@id"]))}
+      if (node.kind === "state") return {...meta, kind: "state", id:  node["@id"], target: resolveStatePresenceTarget(document, node["@id"])}
+      if (node.kind === "activation") return {...meta, kind: "transition", id:  node["@id"], target: resolveTransitionActivationTarget(document, node["@id"], eventIdForTransition(node["@id"]))}
       return {...meta, kind: "control-flow", transitionId: node["@id"]}
     }
 

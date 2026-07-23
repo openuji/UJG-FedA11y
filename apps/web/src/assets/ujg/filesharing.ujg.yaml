@@ -77,6 +77,11 @@ states:
           surface:
             id: "urn:surface:alice-remote-recipient-entered"
             label: "Alice remote recipient entry"
+        "urn:state:alice-share-permissions-open":
+          label: "Alice share permissions are open"
+          surface:
+            id: "urn:surface:alice-share-permissions-open"
+            label: "Alice share permissions form"
         "urn:state:alice-share-confirmed":
           label: "Alice confirmed the remote share"
           surface:
@@ -97,9 +102,16 @@ states:
           surface:
             id: "urn:surface:alice-enters-remote-bob"
             label: "Alice remote recipient input"
+        - id: "urn:transition:alice-selects-remote-recipient"
+          label: "Alice selects Bob as the remote recipient"
+          from: "urn:state:alice-remote-recipient-entered"
+          to: "urn:state:alice-share-permissions-open"
+          surface:
+            id: "urn:surface:alice-selects-remote-recipient"
+            label: "Alice remote recipient option"
         - id: "urn:transition:alice-confirms-share"
           label: "Alice confirms the share"
-          from: "urn:state:alice-remote-recipient-entered"
+          from: "urn:state:alice-share-permissions-open"
           to: "urn:state:alice-share-confirmed"
           surface:
             id: "urn:surface:alice-confirms-share"
@@ -223,14 +235,14 @@ messageBundle:
     locales:
       en:
         value: "Sharing options"
-  "urn:message:confirm-share-action":
-    label: "Confirm share action"
+  "urn:message:save-share-action":
+    label: "Save share action"
     namespace: "nextcloud.actions"
-    messageKey: "actions.confirmShare"
+    messageKey: "actions.saveShare"
     defaultLocale: "en"
     locales:
       en:
-        value: "Share"
+        value: "Save share"
   "urn:message:accept-action":
     label: "Accept action"
     namespace: "nextcloud.actions"
@@ -255,6 +267,14 @@ messageBundle:
     locales:
         en: 
           value: "report.pdf"
+  "urn:message:report-pdf-shared-row":
+    label: "Shared file row status"
+    namespace: "nextcloud.files"
+    messageKey: "files.reportPdf.sharedRow"
+    defaultLocale: "en"
+    locales:
+      en:
+        value: "Shared"
         
 
 accessible:
@@ -282,12 +302,9 @@ accessible:
       accessibleFeatureRefs:
         - "urn:feature:remote-recipient-instance-key"
     "urn:locator:alice-share-row":
-      label: "Confirmed outgoing share row"
+      label: "Alice shared file row"
       role: "row"
-      accessibleFeatureRefs:
-        - "urn:feature:remote-recipient-instance-key"
-      contextLocatorRefs:
-        - "urn:locator:sharing-panel"
+      accessibleNameRef: "urn:message:report-pdf-shared-row"
     "urn:locator:incoming-share-row":
       label: "Incoming share row"
       role: "row"
@@ -315,12 +332,12 @@ accessible:
       accessibleNameRef: "urn:message:remote-recipient-input"
       contextLocatorRefs:
         - "urn:locator:sharing-panel"
-    "urn:locator:confirm-share-button":
-      label: "Confirm share button"
+    "urn:locator:save-share-button":
+      label: "Save share button"
       role: "button"
-      accessibleNameRef: "urn:message:confirm-share-action"
+      accessibleNameRef: "urn:message:save-share-action"
       contextLocatorRefs:
-        - "urn:locator:remote-recipient-entry"
+        - "urn:locator:sharing-panel"
     "urn:locator:bob-accept-share-button":
       label: "Bob accept share button"
       role: "button"
@@ -398,6 +415,12 @@ observationBindings:
     observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:remote-recipient-entry"
+  "urn:obs:alice-share-permissions-open-presence":
+    label: "Observe Alice share permissions open"
+    observeSurfaceRef: "urn:surface:alice-share-permissions-open"
+    observationEventRef: "urn:observation-event:presence"
+    locatorRefs:
+      - "urn:locator:save-share-button"
   "urn:obs:alice-share-confirmed-presence":
     label: "Observe Alice share confirmed"
     observeSurfaceRef: "urn:surface:alice-share-confirmed"
@@ -439,13 +462,19 @@ observationBindings:
     observationEventRef: "urn:observation-event:text-entry-activation"
     locatorRefs:
       - "urn:locator:remote-recipient-input"
-  "urn:obs:alice-confirms-share-activation":
-    label: "Activate Alice share confirmation"
-    observeSurfaceRef: "urn:surface:alice-confirms-share"
+  "urn:obs:alice-selects-remote-recipient-activation":
+    label: "Activate Alice remote recipient option"
+    observeSurfaceRef: "urn:surface:alice-selects-remote-recipient"
     observationEventRef: "urn:observation-event:option-activation"
     locatorRefs:
       - "urn:locator:remote-recipient-entry"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
+  "urn:obs:alice-confirms-share-activation":
+    label: "Activate Alice share confirmation"
+    observeSurfaceRef: "urn:surface:alice-confirms-share"
+    observationEventRef: "urn:observation-event:button-activation"
+    locatorRefs:
+      - "urn:locator:save-share-button"
   "urn:obs:bob-accepts-share-activation":
     label: "Activate Bob share acceptance"
     observeSurfaceRef: "urn:surface:bob-accepts-share"
