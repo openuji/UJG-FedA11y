@@ -35,7 +35,8 @@ const aliceSharePanelOpenStateId = "urn:state:alice-share-panel-open";
 const aliceEntersRemoteBobTransitionId = "urn:transition:alice-enters-remote-bob";
 const aliceRemoteRecipientEnteredStateId = "urn:state:alice-remote-recipient-entered";
 const textEntryActivationObservationEventId = "urn:observation-event:text-entry-activation";
-const keyboardInputModalityProfileId = "urn:input-modality-profile:keyboard";
+const keyboardTextEntryInputModalityProfileId =
+  "urn:input-modality-profile:keyboard-text-entry";
 
 const openFileMenuInputModalityProfiles = resolveTransitionActivationTarget(
   loadFilesharingUjg(),
@@ -74,7 +75,7 @@ for (const openFileMenuInputModalityProfile of openFileMenuInputModalityProfiles
     );
     const activeEnterRemoteBobInputModalityProfile = requireInputModalityProfile(
       enterRemoteBobTransition.activation.requiredInputModalityProfiles,
-      keyboardInputModalityProfileId
+      keyboardTextEntryInputModalityProfileId
     );
     const openFileMenuCommand = resolveTransitionActivationCommand(
       openFileMenuTransition.activation,

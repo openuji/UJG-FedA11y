@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { compileHappyPathPlan, loadFilesharingUjg } from "./ujg-resolver-2.js";
-import {runHappyPathPlan} from './journeyRunner.js'
+import { runHappyPathPlan } from "./journeyRunner.js";
 
 const document = loadFilesharingUjg();
 const plan = compileHappyPathPlan(document);
@@ -17,6 +17,7 @@ test("federated sharing happy path is keyboard accessible", async ({
   try {
     await runHappyPathPlan({
       plan,
+      browser,
       testInfo
     });
   } finally {

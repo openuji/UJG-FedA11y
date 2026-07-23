@@ -1,18 +1,12 @@
 {
   "version": "0.2.0",
-  "configurations": [
-    {
-      "command": "./node_modules/.bin/astro dev",
-      "name": "Development server",
-      "request": "launch",
-      "type": "node-terminal"
-    },
+  "configurations": [    
     {
       "name": "Playwright: Debug current spec",
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/tests/federation/node_modules/@playwright/test/cli.js",
-      "args": ["test", "${file}", "--project=chromium", "--workers=1"],
+      "args": ["test", "${file}", "--project=chromium", "--workers=1","--config=${workspaceFolder}/tests/federation" ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "autoAttachChildProcesses": true,

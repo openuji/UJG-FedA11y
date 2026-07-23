@@ -344,8 +344,16 @@ inputModalities:
     label: "Pointer"
 
 inputModalityProfiles:
-  "urn:input-modality-profile:keyboard":
-    label: "Keyboard interaction"
+  "urn:input-modality-profile:keyboard-text-entry":
+    label: "Keyboard text entry"
+    inputModalityRefs:
+      - "urn:input-modality:keyboard"
+  "urn:input-modality-profile:keyboard-space":
+    label: "Keyboard Space activation"
+    inputModalityRefs:
+      - "urn:input-modality:keyboard"
+  "urn:input-modality-profile:keyboard-enter":
+    label: "Keyboard Enter activation"
     inputModalityRefs:
       - "urn:input-modality:keyboard"
   "urn:input-modality-profile:pointer":
@@ -359,12 +367,17 @@ observationEvents:
   "urn:observation-event:button-activation":
     label: "Button activation"
     requiredInputModalityProfileRefs:
-      - "urn:input-modality-profile:keyboard"
+      - "urn:input-modality-profile:keyboard-space"
+      - "urn:input-modality-profile:pointer"
+  "urn:observation-event:option-activation":
+    label: "Option activation"
+    requiredInputModalityProfileRefs:
+      - "urn:input-modality-profile:keyboard-enter"
       - "urn:input-modality-profile:pointer"
   "urn:observation-event:text-entry-activation":
     label: "Text entry activation"
     requiredInputModalityProfileRefs:
-      - "urn:input-modality-profile:keyboard"
+      - "urn:input-modality-profile:keyboard-text-entry"
 observationBindings:
   "urn:obs:alice-files-ready-presence":
     label: "Observe Alice files ready"
@@ -429,9 +442,9 @@ observationBindings:
   "urn:obs:alice-confirms-share-activation":
     label: "Activate Alice share confirmation"
     observeSurfaceRef: "urn:surface:alice-confirms-share"
-    observationEventRef: "urn:observation-event:button-activation"
+    observationEventRef: "urn:observation-event:option-activation"
     locatorRefs:
-      - "urn:locator:confirm-share-button"
+      - "urn:locator:remote-recipient-entry"
     surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
   "urn:obs:bob-accepts-share-activation":
     label: "Activate Bob share acceptance"

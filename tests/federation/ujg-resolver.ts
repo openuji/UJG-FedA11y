@@ -94,7 +94,6 @@ type ResolvedSurfaceInstanceResolver = {
 type NodeIndex = Map<string, UjgNode>;
 
 const presenceObservationEventId = "urn:observation-event:presence";
-const buttonActivationObservationEventId = "urn:observation-event:button-activation";
 
 const ujgPath = resolve(
   import.meta.dirname,
@@ -154,25 +153,27 @@ export function resolveStatePresenceTarget(
 export function resolveTransitionActivationTarget(
   document: UjgDocument,
   transitionId: string,
-  eventId = buttonActivationObservationEventId
+  eventId?: string
 ): ResolvedTransitionActivationTarget {
   const index = indexNodes(document);
   const transition = requireNode(index, transitionId, "Transition");
+  const surface = requireSingleSurfaceForGraphNode(document.nodes, transitionId);
+  const activationEventId =
+    eventId ?? requireSingleActivationEventId(index, document.nodes, surface["@id"]);
   const fromState = requireNode(
     index,
     requiredString(transition.from, `${transitionId}.from`),
     "State"
   );
-  const toState = requireNode(index, requiredString(transition.to, `${transitionId}.to`), "State");
-  const surface = requireSingleSurfaceForGraphNode(document.nodes, transitionId);
-  const event = requireNode(index, eventId, "ObservationEvent");
+  const toState = requireLocalVertex(index, requiredString(transition.to, `${transitionId}.to`));
+  const event = requireNode(index, activationEventId, "ObservationEvent");
   const requiredInputModalityProfiles = resolveRequiredInputModalityProfiles(index, event);
   const bindings = observationBindingsForSurface(document.nodes, surface["@id"])
-    .filter((binding) => isEventBinding(index, binding, eventId))
+    .filter((binding) => isEventBinding(index, binding, activationEventId))
     .map((binding) => resolveObservationBinding(index, binding));
 
   if (bindings.length === 0) {
-    throw new Error(`No ${eventId} ObservationBinding found for surface ${surface["@id"]}`);
+    throw new Error(`No ${activationEventId} ObservationBinding found for surface ${surface["@id"]}`);
   }
 
   return {
@@ -286,6 +287,16 @@ function requireNode(index: NodeIndex, id: string, type: string): UjgNode {
   return node;
 }
 
+function requireLocalVertex(index: NodeIndex, id: string): UjgNode {
+  const node = index.get(id);
+
+  if (!node || (!hasType(node, "State") && !hasType(node, "JourneyExit"))) {
+    throw new Error(`Expected ${id} to be State or JourneyExit`);
+  }
+
+  return node;
+}
+
 function requireSingleSurfaceForGraphNode(nodes: UjgNode[], graphNodeRef: string): UjgNode {
   const surfaces = nodes.filter(
     (node) => hasType(node, "Surface") && node.graphNodeRef === graphNodeRef
@@ -302,6 +313,32 @@ function observationBindingsForSurface(nodes: UjgNode[], surfaceId: string): Ujg
   return nodes.filter(
     (node) => hasType(node, "ObservationBinding") && node.observeSurfaceRef === surfaceId
   );
+}
+
+function requireSingleActivationEventId(
+  index: NodeIndex,
+  nodes: UjgNode[],
+  surfaceId: string
+): string {
+  const bindings = observationBindingsForSurface(nodes, surfaceId).filter(
+    (binding) =>
+      requiredString(binding.observationEventRef, `${binding["@id"]}.observationEventRef`) !==
+      presenceObservationEventId
+  );
+
+  if (bindings.length !== 1) {
+    throw new Error(
+      `Expected one activation ObservationBinding for surface ${surfaceId}, found ${bindings.length}`
+    );
+  }
+
+  const eventId = requiredString(
+    bindings[0].observationEventRef,
+    `${bindings[0]["@id"]}.observationEventRef`
+  );
+  requireNode(index, eventId, "ObservationEvent");
+
+  return eventId;
 }
 
 function isPresenceBinding(index: NodeIndex, binding: UjgNode): boolean {

@@ -1,6 +1,12 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  resolveStatePresenceTarget,
+  resolveTransitionActivationTarget,
+  type ResolvedStatePresenceTarget,
+  type ResolvedTransitionActivationTarget
+} from "./ujg-resolver.js";
 
 export type UjgNode = {
   "@id": string;
@@ -15,6 +21,21 @@ export type UjgDocument = {
   nodes: UjgNode[];
 };
 
+type AnyNode = UjgNode & Record<string, any>;
+type HappyPathPlanItemBase = {
+  userId: string;
+  touchpointId: string;
+  phaseId: string;
+  stepId: string;
+};
+export type HappyPathPlanItem =
+  | (HappyPathPlanItemBase & { kind: "state"; target: ResolvedStatePresenceTarget })
+  | (HappyPathPlanItemBase & {
+      kind: "transition";
+      target: ResolvedTransitionActivationTarget;
+    })
+  | (HappyPathPlanItemBase & { kind: "control-flow"; transitionId: string });
+export type HappyPathPlan = { items: HappyPathPlanItem[] };
 
 const ujgPath = resolve(
   import.meta.dirname,
@@ -37,49 +58,50 @@ export function loadFilesharingUjg(): UjgDocument {
 }
 
 
-export const compileHappyPathPlan = (document: UjgDocument) => {
+export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
+    const nodes = document.nodes as AnyNode[]
 
-    const journeysMap = document.nodes.filter(n => n['@type'] === 'Journey')
+    const journeysMap = nodes.filter(n => n['@type'] === 'Journey')
         .reduce((agg, current) => agg.set(current['@id'], current), new Map())
 
-    const statesMap = document.nodes.filter(n => n['@type'] === 'State')
+    const statesMap = nodes.filter(n => n['@type'] === 'State')
      .reduce((agg, current) => agg.set(current['@id'], current), new Map())
     
 
-    const touchpoints =  document.nodes.filter(n => n['@type'] === 'Touchpoint') 
-    const touchpointsMap =  document.nodes.filter(n => n['@type'] === 'Touchpoint')
+    const touchpoints =  nodes.filter(n => n['@type'] === 'Touchpoint') 
+    const touchpointsMap =  nodes.filter(n => n['@type'] === 'Touchpoint')
      .reduce((agg, current) => agg.set(current['@id'], current), new Map())
     
-    const users = document.nodes.filter(n => n['@type'] === 'User')
+    const users = nodes.filter(n => n['@type'] === 'User')
     const usersMap = users.reduce((agg, current) => agg.set(current['@id'], current), new Map())
     
     const usersCompositeStates = users.map(u => {
-        return {...u, compositeStateRefs: u.touchpointRefs.flatMap(tRef => touchpointsMap.get(tRef).compositeStateRefs)}
+        return {...u, compositeStateRefs: u.touchpointRefs.flatMap((tRef: string) => touchpointsMap.get(tRef).compositeStateRefs)}
     })
     const compositeStateUserMap = usersCompositeStates.reduce((agg, current) => {
-        current.compositeStateRefs.forEach(ref => {
+        current.compositeStateRefs.forEach((ref: string) => {
             agg.set(ref, current['@id'])
         });
 
         return agg
     }, new Map())
 
-    const journeEntryIndex =  document.nodes.filter(n => n['@type'] === 'JourneyEntryIndex')
-    const entryState = journeEntryIndex.reduce((agg, current) => ([...agg, ...current.stateRefs]), [])
+    const journeEntryIndex =  nodes.filter(n => n['@type'] === 'JourneyEntryIndex')
+    const entryState = journeEntryIndex.flatMap(current => current.stateRefs || [])
 
     
-    const compositeStates = document.nodes.filter(n => n['@type'] === 'CompositeState')
+    const compositeStates = nodes.filter(n => n['@type'] === 'CompositeState')
     const compositeStatesMap = compositeStates
         .reduce((agg, current) => agg.set(current['@id'], current), new Map())
     
-    const buildCompositeStateTree = (compositeStateRefs, parentUser = null) => {
+    const buildCompositeStateTree = (compositeStateRefs: string[], parentUser: string | null = null): any[] => {
         
         return compositeStateRefs.map(ref => {
             const cs = compositeStatesMap.get(ref)  
             const user = parentUser || compositeStateUserMap.get(ref)        
             
             const journey = journeysMap.get(cs['subjourneyId']) 
-            const journeyCS = journey.stateRefs.filter(ref => compositeStatesMap.has(ref))
+            const journeyCS = journey.stateRefs.filter((ref: string) => compositeStatesMap.has(ref))
             
             const s = {id: ref, user}
             if(journeyCS.length > 0) return {...s, childs: buildCompositeStateTree(journeyCS, user)}
@@ -90,7 +112,7 @@ export const compileHappyPathPlan = (document: UjgDocument) => {
     }
      
     const compositeStateTree = buildCompositeStateTree(entryState)
-    const flatCompositeStateTree = (tree, csMap = new Map()) => {
+    const flatCompositeStateTree = (tree: any[], csMap = new Map()) => {
         tree.map((c) => {
             csMap.set(c.id, c)
             if(c.childs) flatCompositeStateTree(c.childs, csMap)
@@ -106,14 +128,14 @@ export const compileHappyPathPlan = (document: UjgDocument) => {
     
 
     
-    const phasesMap = document.nodes.filter(n => n['@type'] === 'Phase')
+    const phasesMap = nodes.filter(n => n['@type'] === 'Phase')
         .reduce((agg, current) => agg.set(current['@id'], current), new Map())
-    const steps = document.nodes.filter(n => n['@type'] === 'Step')
+    const steps = nodes.filter(n => n['@type'] === 'Step')
     
-    const journeyEntrysMap =  document.nodes.filter(n => n['@type'] === 'JourneyEntry')
+    const journeyEntrysMap =  nodes.filter(n => n['@type'] === 'JourneyEntry')
         .reduce((agg, current) => agg.set(current['@id'], current), new Map())
 
-    const transitionsMap = document.nodes.filter(n => n['@type'] === 'Transition')
+    const transitionsMap = nodes.filter(n => n['@type'] === 'Transition')
         .reduce((agg, current) => agg.set(current['@id'], current), new Map())
     
  
@@ -123,9 +145,9 @@ export const compileHappyPathPlan = (document: UjgDocument) => {
         const jorneyId = current['subjourneyId']
         
         const journey = journeysMap.get(jorneyId)
-        const journeyTransitions = (journey.transitionRefs || []).map(t => transitionsMap.get(t))
-        const journeyEnterStates = (journey.entryRefs || []).map(eRef =>journeyEntrysMap.get(eRef)).map((e) => statesMap.get(e.stateRef))
-        const parentCS = Array.from(flatCS.entries()).find(([_, value]) => (value.childs || []).some(c => c.id === compositeStateId))
+        const journeyTransitions = (journey.transitionRefs || []).map((t: string) => transitionsMap.get(t))
+        const journeyEnterStates = (journey.entryRefs || []).map((eRef: string) =>journeyEntrysMap.get(eRef)).map((e: AnyNode) => statesMap.get(e.stateRef))
+        const parentCS = Array.from(flatCS.entries()).find(([_, value]) => (value.childs || []).some((c: any) => c.id === compositeStateId))
         const parentCompositeState = parentCS && parentCS[0] && compositeStatesMap.get(parentCS[0]) || undefined 
         
         agg.set(compositeStateId, {
@@ -151,25 +173,25 @@ export const compileHappyPathPlan = (document: UjgDocument) => {
     //     return agg
     // }, new Map())
 
-    const buildStepPath = (compositeJourney, state, path = []) => {
+    const buildStepPath = (compositeJourney: any, state: AnyNode, path: AnyNode[] = []) => {
 
-        path.push(state)
-        const transition = compositeJourney.journeyTransitions.find(t => t.from === state['@id'])
+        path.push({...state, kind: 'state'})
+        const transition = compositeJourney.journeyTransitions.find((t: AnyNode) => t.from === state['@id'])
         if(transition) {
+            path.push({...transition, kind: 'activation'})
             const toState = statesMap.get(transition.to)
             
             
             if(toState) {
-                path.push({...transition, kind: 'activation'})
                 buildStepPath(compositeJourney, toState, path)
             }else {
                 const parentCS = compositeJourney.parentCompositeState
                 if(parentCS) {
                     const parentJourney = journeysMap.get(parentCS.subjourneyId);
-                    const _transition =  (parentJourney.transitionRefs || []).map(ref => transitionsMap.get(ref)).find(t => t.fromExitRef === transition.to)
+                    const _transition =  (parentJourney.transitionRefs || []).map((ref: string) => transitionsMap.get(ref)).find((t: AnyNode) => t.fromExitRef === transition.to)
                     
                    if(_transition) {
-                    path.push({...transition, parentTransitionRef: _transition['@id'], kind: 'parent-control-flow'})
+                    path.push({..._transition, kind: 'parent-control-flow'})
                    }
                 }                
             }            
@@ -181,34 +203,44 @@ export const compileHappyPathPlan = (document: UjgDocument) => {
 
 
 
-    const userTouchPointsSteps = steps.reduce((agg, current) => {
-        const compositeStateId = current['compositeStateRef']
+    const sourceOrder = new Map(nodes.map((node, index) => [node["@id"], index]))
+    const order = (node: AnyNode | undefined, fallback: number) =>
+      typeof node?.order === "number" ? node.order : fallback
+    const eventIdForTransition = (transitionId: string) => {
+      const surface = nodes.find(n => n["@type"] === "Surface" && n.graphNodeRef === transitionId)
+      const binding = nodes.find(n =>
+        n["@type"] === "ObservationBinding" && n.observeSurfaceRef === surface?.["@id"]
+      )
+      if (!binding?.observationEventRef) throw new Error(`Missing activation binding for ${transitionId}`)
+      return binding.observationEventRef
+    }
+    const toItem = (meta: HappyPathPlanItemBase) => (node: AnyNode): HappyPathPlanItem => {
+      if (node.kind === "state") return {...meta, kind: "state", target: resolveStatePresenceTarget(document, node["@id"])}
+      if (node.kind === "activation") return {...meta, kind: "transition", target: resolveTransitionActivationTarget(document, node["@id"], eventIdForTransition(node["@id"]))}
+      return {...meta, kind: "control-flow", transitionId: node["@id"]}
+    }
+
+    return {
+      items: [...steps].sort((a, b) =>
+        order(phasesMap.get(a.phaseRef), sourceOrder.get(a.phaseRef) ?? 0) -
+          order(phasesMap.get(b.phaseRef), sourceOrder.get(b.phaseRef) ?? 0) ||
+        order(a, sourceOrder.get(a["@id"]) ?? 0) - order(b, sourceOrder.get(b["@id"]) ?? 0)
+      ).flatMap(step => {
+        const compositeStateId = step.compositeStateRef
         const userId = flatCS.get(compositeStateId).user
-        if(!agg.has(userId)) {
-            agg.set(userId, new Map())
-        }
-        const userTouchPoints = agg.get(userId)
         const user = usersMap.get(userId)
-        const touchPoint = touchpoints.find(t => user.touchpointRefs.includes(t['@id']))
-        const touchPointId = touchPoint && touchPoint['@id']
-        if(!touchPoint) return agg
-
-        if(!userTouchPoints.has(touchPointId)) {
-            userTouchPoints.set(touchPointId, [])
-        }
-        const steps = userTouchPoints.get(touchPointId)
-
+        const touchPoint = touchpoints.find(t => user.touchpointRefs.includes(t["@id"]))
+        if (!touchPoint) throw new Error(`Missing touchpoint for ${userId}`)
         const compositeJourney = compositeStatesTransitions.get(compositeStateId)
-        /** TODO: later we need to address this not only single entry */
-        const enterState = compositeJourney.journeyEnterStates[0]
-
-    
-        const path = buildStepPath(compositeJourney, enterState)
-        console.log('path', path)
-        userTouchPoints.set(touchPointId, [...steps, {...current, compositeJourney, user, path}])
-        return agg
-    }, new Map())
-
+        const path = buildStepPath(compositeJourney, compositeJourney.journeyEnterStates[0])
+        return path.map(toItem({
+          userId,
+          touchpointId: touchPoint["@id"],
+          phaseId: step.phaseRef,
+          stepId: step["@id"]
+        }))
+      })
+    }
 
     
 

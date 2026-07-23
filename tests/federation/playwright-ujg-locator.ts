@@ -21,11 +21,15 @@ const featureAdapters: FeatureAdapter[] = [
 
 const keyboardInputModalityId = "urn:input-modality:keyboard";
 const pointerInputModalityId = "urn:input-modality:pointer";
-const buttonActivationObservationEventId = "urn:observation-event:button-activation";
-const textEntryActivationObservationEventId = "urn:observation-event:text-entry-activation";
+const keyboardTextEntryInputModalityProfileId =
+  "urn:input-modality-profile:keyboard-text-entry";
+const keyboardSpaceInputModalityProfileId = "urn:input-modality-profile:keyboard-space";
+const keyboardEnterInputModalityProfileId = "urn:input-modality-profile:keyboard-enter";
+const pointerInputModalityProfileId = "urn:input-modality-profile:pointer";
 
 export type PlaywrightTransitionCommandId =
   | "pointer-click"
+  | "keyboard-enter"
   | "keyboard-space"
   | "keyboard-text-entry";
 
@@ -69,20 +73,26 @@ export function resolveTransitionActivationCommand(
 ): PlaywrightTransitionCommand {
   const modality = requireSingleInputModality(activation, profile);
 
-  switch (`${activation.eventId} ${modality.id}`) {
-    case `${buttonActivationObservationEventId} ${pointerInputModalityId}`:
+  switch (`${profile.id} ${modality.id}`) {
+    case `${pointerInputModalityProfileId} ${pointerInputModalityId}`:
       return {
         id: "pointer-click",
         eventId: activation.eventId,
         inputModalityProfile: profile
       };
-    case `${buttonActivationObservationEventId} ${keyboardInputModalityId}`:
+    case `${keyboardSpaceInputModalityProfileId} ${keyboardInputModalityId}`:
       return {
         id: "keyboard-space",
         eventId: activation.eventId,
         inputModalityProfile: profile
       };
-    case `${textEntryActivationObservationEventId} ${keyboardInputModalityId}`:
+    case `${keyboardEnterInputModalityProfileId} ${keyboardInputModalityId}`:
+      return {
+        id: "keyboard-enter",
+        eventId: activation.eventId,
+        inputModalityProfile: profile
+      };
+    case `${keyboardTextEntryInputModalityProfileId} ${keyboardInputModalityId}`:
       return {
         id: "keyboard-text-entry",
         eventId: activation.eventId,
@@ -111,6 +121,9 @@ export async function activateResolvedTransition(
       return;
     case "keyboard-space":
       await locator.press("Space");
+      return;
+    case "keyboard-enter":
+      await locator.press("Enter");
       return;
     case "keyboard-text-entry":
       await locator.pressSequentially(requiredTransitionValue(values.federatedRecipient, command));
