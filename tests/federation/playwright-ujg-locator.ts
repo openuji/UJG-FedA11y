@@ -18,6 +18,7 @@ type FeatureAdapter = {
 const featureAdapters: FeatureAdapter[] = [
   
 ];
+const roleOptionFeatureNames = new Set(["expanded"]);
 
 const keyboardInputModalityId = "urn:input-modality:keyboard";
 const pointerInputModalityId = "urn:input-modality:pointer";
@@ -50,7 +51,7 @@ export function toPlaywrightLocator(root: LocatorRoot, locator: ResolvedAccessib
   );
   const roleLocator = getRoleLocator(scopedRoot, locator);
 
-  return locator.features.reduce(
+  return locator.features.filter((feature) => !roleOptionFeatureNames.has(feature.name)).reduce(
     (currentLocator, feature) => applyFeature(scopedRoot, currentLocator, feature),
     roleLocator
   );
@@ -153,7 +154,8 @@ function getRoleLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): 
   }
 
   return root.getByRole(locator.role as never, {
-    name: locator.accessibleName ? accessibleNamePattern(locator.accessibleName) : undefined
+    name: locator.accessibleName ? accessibleNamePattern(locator.accessibleName) : undefined,
+    expanded: expandedOption(locator)
   });
 }
 
@@ -218,6 +220,16 @@ function assertNever(value: never): never {
 
 function accessibleNamePattern(value: string): RegExp {
   return new RegExp(escapeRegExp(value), "i");
+}
+
+function expandedOption(locator: ResolvedAccessibleLocator): boolean | undefined {
+  const features = locator.features.filter((feature) => feature.name === "expanded");
+  if (features.length === 0) return undefined;
+  if (features.length > 1) throw new Error(`AccessibleLocator ${locator.id} repeats expanded`);
+
+  if (features[0].value === "true") return true;
+  if (features[0].value === "false") return false;
+  throw new Error(`AccessibleLocator ${locator.id} has invalid expanded value ${features[0].value}`);
 }
 
 function escapeRegExp(value: string): string {

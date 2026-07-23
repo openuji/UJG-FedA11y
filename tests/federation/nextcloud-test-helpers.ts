@@ -37,19 +37,41 @@ const fixtureSourcePath = resolve(
 );
 
 export async function ensureFederatedShareFixtureIsClean(): Promise<void> {
-  await deleteOutgoingSharesForPath(aliceUser, fixtureFilePath);
   await deleteIncomingRemoteShares(bobUser);
   await deleteFileIfExists(bobUser, fixtureFileName);
+  await deleteOutgoingSharesForPath(aliceUser, fixtureFilePath);
   await ensureFileExists(aliceUser, fixtureFileName);
+  await expectFederatedShareFixtureIsClean();
+}
+
+export async function expectAcceptedFederatedShareHasMountedFile(): Promise<void> {
+  await expect
+    .poll(async () => {
+      const shares = await listOcsShares(bobUser, "/apps/files_sharing/api/v1/remote_shares").catch(
+        (error) => `remote-shares:${String(error)}`
+      );
+      if (typeof shares === "string") return shares;
+
+      const share = shares.find(isFixtureShare);
+      if (!share) return "remote-share:missing";
+      if (String(share.accepted) !== "1") return `remote-share:accepted:${String(share.accepted)}`;
+      if (!share.file_id) return "remote-share:file-id-missing";
+      if (!share.mimetype) return "remote-share:mimetype-missing";
+      if (share.permissions == null) return "remote-share:permissions-missing";
+
+      const response = await nextcloudFetch(bobUser, davFileUrl(bobUser, fixtureFileName), {
+        method: "HEAD"
+      });
+      return response.ok ? "ok" : `webdav:${response.status}`;
+    }, { message: "Bob accepted remote share should be mounted as report.pdf", timeout: 30_000 })
+    .toBe("ok");
 }
 
 export async function deleteOutgoingSharesForPath(
   user: NextcloudUser,
   path: string
 ): Promise<void> {
-  const response = await nextcloudFetch(user, ocsUrl(user, "/apps/files_sharing/api/v1/shares", { path }));
-  await expectOk(response, `list outgoing shares for ${path} on ${user.label}`);
-  const shares = await ocsDataArray(response);
+  const shares = await listOcsShares(user, "/apps/files_sharing/api/v1/shares", { path });
 
   await Promise.all(
     shares.map((share) =>
@@ -70,7 +92,7 @@ export async function deleteIncomingRemoteShares(user: NextcloudUser): Promise<v
     const shares = await ocsDataArray(response).catch(() => []);
     await Promise.all(
       shares
-        .filter((share) => String(share.name ?? share.file_target ?? share.path ?? "").includes(fixtureFileName))
+        .filter(isFixtureShare)
         .map((share) => deleteOcsResource(user, `${endpoint.replace(/\/pending$/, "")}/${encodeURIComponent(String(share.id))}`, true))
     );
   }
@@ -145,8 +167,13 @@ export function trimTrailingSlash(value: string): string {
 
 type OcsShare = {
   id: string | number;
+  accepted?: string | number | boolean;
+  file_id?: string | number | null;
   name?: string;
   file_target?: string;
+  mimetype?: string | null;
+  mountpoint?: string;
+  permissions?: string | number | null;
   path?: string;
 };
 
@@ -188,6 +215,50 @@ async function deleteOcsResource(
 async function ocsDataArray(response: Response): Promise<OcsShare[]> {
   const payload = (await response.json()) as { ocs?: { data?: unknown } };
   return Array.isArray(payload.ocs?.data) ? (payload.ocs.data as OcsShare[]) : [];
+}
+
+async function expectFederatedShareFixtureIsClean(): Promise<void> {
+  await expect
+    .poll(async () => {
+      const aliceShares = await listOcsShares(aliceUser, "/apps/files_sharing/api/v1/shares", {
+        path: fixtureFilePath
+      });
+      if (aliceShares.length > 0) return `alice-outgoing:${aliceShares.length}`;
+
+      const bobShares = await listOcsShares(bobUser, "/apps/files_sharing/api/v1/remote_shares");
+      if (bobShares.some(isFixtureShare)) return "bob-remote-share:present";
+
+      const pendingBobShares = await listOcsShares(bobUser, "/apps/files_sharing/api/v1/remote_shares/pending");
+      if (pendingBobShares.some(isFixtureShare)) return "bob-pending-share:present";
+
+      const bobFile = await nextcloudFetch(bobUser, davFileUrl(bobUser, fixtureFileName), {
+        method: "HEAD"
+      });
+      if (bobFile.ok) return "bob-file:present";
+      if (bobFile.status !== 404) return `bob-file:${bobFile.status}`;
+
+      const aliceFile = await nextcloudFetch(aliceUser, davFileUrl(aliceUser, fixtureFileName), {
+        method: "HEAD"
+      });
+      return aliceFile.ok ? "ok" : `alice-file:${aliceFile.status}`;
+    }, { message: "Federated share fixture should be clean before the journey", timeout: 30_000 })
+    .toBe("ok");
+}
+
+async function listOcsShares(
+  user: NextcloudUser,
+  endpoint: string,
+  params: Record<string, string> = {}
+): Promise<OcsShare[]> {
+  const response = await nextcloudFetch(user, ocsUrl(user, endpoint, params));
+  await expectOk(response, `list OCS resource ${endpoint} for ${user.label}`);
+  return ocsDataArray(response);
+}
+
+function isFixtureShare(share: OcsShare): boolean {
+  return [share.name, share.file_target, share.mountpoint, share.path].some((value) =>
+    String(value ?? "").includes(fixtureFileName)
+  );
 }
 
 async function expectOk(response: Response, action: string): Promise<void> {

@@ -57,11 +57,13 @@ export type ResolvedStateObservation = {
   stateLabel?: string;
   surfaceId: string;
   surfaceLabel?: string;
+  expectedCount: number;
   bindings: ResolvedObservationBinding[];
 };
 
 export type ResolvedStatePresenceTarget = {
   observation: ResolvedStateObservation;
+  expectedCount: number;
   bindings: ResolvedObservationBinding[];
 };
 
@@ -74,6 +76,7 @@ export type ResolvedTransitionActivation = {
   fromStateLabel?: string;
   toStateId: string;
   toStateLabel?: string;
+  effectRef?: string;
   surfaceId: string;
   surfaceLabel?: string;
   requiredInputModalityProfiles: ResolvedInputModalityProfile[];
@@ -94,6 +97,11 @@ type ResolvedSurfaceInstanceResolver = {
 type NodeIndex = Map<string, UjgNode>;
 
 const presenceObservationEventId = "urn:observation-event:presence";
+const absenceObservationEventId = "urn:observation-event:absence";
+const stateObservationEventIds = new Set([
+  presenceObservationEventId,
+  absenceObservationEventId
+]);
 
 const ujgPath = resolve(
   import.meta.dirname,
@@ -122,11 +130,15 @@ export function resolveStatePresenceObservation(
   const state = requireNode(index, stateId, "State");
   const surface = requireSingleSurfaceForGraphNode(document.nodes, stateId);
   const bindings = observationBindingsForSurface(document.nodes, surface["@id"])
-    .filter((binding) => isPresenceBinding(index, binding))
+    .filter((binding) => isStateObservationBinding(index, binding))
     .map((binding) => resolveObservationBinding(index, binding));
 
   if (bindings.length === 0) {
-    throw new Error(`No presence ObservationBinding found for surface ${surface["@id"]}`);
+    throw new Error(`No state ObservationBinding found for surface ${surface["@id"]}`);
+  }
+  const expectedCounts = new Set(bindings.map((binding) => expectedCountForEvent(binding.eventId)));
+  if (expectedCounts.size !== 1) {
+    throw new Error(`State surface ${surface["@id"]} mixes incompatible observation events`);
   }
 
   return {
@@ -134,6 +146,7 @@ export function resolveStatePresenceObservation(
     stateLabel: optionalString(state.label),
     surfaceId: surface["@id"],
     surfaceLabel: optionalString(surface.label),
+    expectedCount: [...expectedCounts][0],
     bindings
   };
 }
@@ -146,6 +159,7 @@ export function resolveStatePresenceTarget(
 
   return {
     observation,
+    expectedCount: observation.expectedCount,
     bindings: observation.bindings
   };
 }
@@ -186,6 +200,7 @@ export function resolveTransitionActivationTarget(
       fromStateLabel: optionalString(fromState.label),
       toStateId: toState["@id"],
       toStateLabel: optionalString(toState.label),
+      effectRef: optionalString(transition.effectRef),
       surfaceId: surface["@id"],
       surfaceLabel: optionalString(surface.label),
       requiredInputModalityProfiles,
@@ -215,6 +230,7 @@ export function describeResolvedTransitionActivation(
     `Event: ${activation.eventId} (${activation.eventLabel ?? "unlabeled"})`,
     `From: ${activation.fromStateId} (${activation.fromStateLabel ?? "unlabeled"})`,
     `To: ${activation.toStateId} (${activation.toStateLabel ?? "unlabeled"})`,
+    `Effect: ${activation.effectRef ?? "none"}`,
     `Surface: ${activation.surfaceId} (${activation.surfaceLabel ?? "unlabeled"})`,
     `Required input modality profiles: ${describeInputModalityProfiles(
       activation.requiredInputModalityProfiles
@@ -322,8 +338,9 @@ function requireSingleActivationEventId(
 ): string {
   const bindings = observationBindingsForSurface(nodes, surfaceId).filter(
     (binding) =>
-      requiredString(binding.observationEventRef, `${binding["@id"]}.observationEventRef`) !==
-      presenceObservationEventId
+      !stateObservationEventIds.has(
+        requiredString(binding.observationEventRef, `${binding["@id"]}.observationEventRef`)
+      )
   );
 
   if (bindings.length !== 1) {
@@ -341,8 +358,11 @@ function requireSingleActivationEventId(
   return eventId;
 }
 
-function isPresenceBinding(index: NodeIndex, binding: UjgNode): boolean {
-  return isEventBinding(index, binding, presenceObservationEventId);
+function isStateObservationBinding(index: NodeIndex, binding: UjgNode): boolean {
+  const eventId = requiredString(binding.observationEventRef, `${binding["@id"]}.observationEventRef`);
+  if (!stateObservationEventIds.has(eventId)) return false;
+  requireNode(index, eventId, "ObservationEvent");
+  return true;
 }
 
 function isEventBinding(index: NodeIndex, binding: UjgNode, expectedEventId: string): boolean {
@@ -355,6 +375,12 @@ function isEventBinding(index: NodeIndex, binding: UjgNode, expectedEventId: str
   requireNode(index, eventId, "ObservationEvent");
 
   return true;
+}
+
+function expectedCountForEvent(eventId: string): number {
+  if (eventId === presenceObservationEventId) return 1;
+  if (eventId === absenceObservationEventId) return 0;
+  throw new Error(`No state expected count for ObservationEvent ${eventId}`);
 }
 
 function resolveObservationBinding(index: NodeIndex, binding: UjgNode): ResolvedObservationBinding {

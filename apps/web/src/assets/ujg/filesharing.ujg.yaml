@@ -34,11 +34,7 @@ effects:
     producedRefs:
       - "urn:artifact:federated-share"
   "urn:effect:bob-accept-share":
-    label: "Bob accepts the incoming remote share"
-    consumedRefs:
-      - "urn:artifact:federated-share"
-  "urn:effect:bob-open-accepted-file":
-    label: "Bob opens the accepted file"
+    label: "Bob accepts the remote share"
     consumedRefs:
       - "urn:artifact:federated-share"
 
@@ -147,69 +143,55 @@ states:
                   id: urn:surface:bob-incoming-share-visible
                   label: Bob incoming remote share row
             exits:
-              urn:exit:bob-share-accepted:
+              urn:exit:bob-share-offer-accepted:
                 label: Remote share accepted
-              urn:exit:bob-share-revoked:
-                label: Remote share revoked before acceptance
             transitions:
               - id: urn:transition:bob-accepts-share
-                label: Bob accepts the incoming share
+                label: Bob accepts the remote share
                 from: urn:state:bob-incoming-share-visible
-                to: urn:exit:bob-share-accepted
+                to: urn:exit:bob-share-offer-accepted
                 surface:
                   id: urn:surface:bob-accepts-share
                   label: Bob accept-share action
                 effectRef: urn:effect:bob-accept-share
-              - id: urn:transition:bob-share-revoked-before-acceptance
-                label: The remote share is revoked before Bob accepts it
-                from: urn:state:bob-incoming-share-visible
-                to: urn:exit:bob-share-revoked
-        urn:composite:bob-federated-access-established:
+        urn:composite:bob-pending-share-offer-cleared:
           type: CompositeState
-          label: Bob federated access established
+          label: Bob pending share offer cleared
           subjourney:
-            id: urn:journey:bob-federated-access-established
-            label: Bob uses established federated access
-            defaultEntryRef: urn:entry:bob-federated-access-established
+            id: urn:journey:bob-pending-share-offer-cleared
+            label: Bob verifies the pending remote-share offer is cleared
+            defaultEntryRef: urn:entry:bob-pending-share-offer-cleared
             entries:
-              urn:entry:bob-federated-access-established:
-                label: Bob accepted share entry
-                stateRef: urn:state:bob-share-accepted
+              urn:entry:bob-pending-share-offer-cleared:
+                label: Bob pending share offer cleared entry
+                stateRef: urn:state:bob-pending-share-offer-cleared
             states:
-              urn:state:bob-share-accepted:
-                label: Bob accepted the remote share
+              urn:state:bob-pending-share-offer-cleared:
+                label: Bob pending remote-share offer is cleared
                 surface:
-                  id: urn:surface:bob-share-accepted
-                  label: Bob accepted remote share
-              urn:state:bob-file-visible:
-                label: Bob can see the shared file
+                  id: urn:surface:bob-pending-share-offer-cleared
+                  label: Bob pending remote share row is removed
+              urn:state:bob-shared-report-visible:
+                label: Bob sees report.pdf marked as shared
                 surface:
-                  id: urn:surface:bob-file-visible
-                  label: Bob sees accepted file
+                  id: urn:surface:bob-shared-report-visible
+                  label: Bob shared report row
             transitions:
-              - id: urn:transition:bob-opens-accepted-file
-                label: Bob opens the accepted shared file
-                from: urn:state:bob-share-accepted
-                to: urn:state:bob-file-visible
+              - id: urn:transition:bob-opens-shares-overview
+                label: Bob opens Shares overview
+                from: urn:state:bob-pending-share-offer-cleared
+                to: urn:state:bob-shared-report-visible
                 surface:
-                  id: urn:surface:bob-opens-accepted-file
-                  label: Bob open-file action
-                effectRef: urn:effect:bob-open-accepted-file
-      exits:
-        urn:exit:bob-remote-share-revoked-out-of-scope:
-          label: Bob remote-share path ended because the offer was revoked
+                  id: urn:surface:bob-opens-shares-overview
+                  label: Bob Shares overview link
       transitions:
-        - id: urn:transition:bob-continues-after-share-accepted
-          label: Bob continues with established federated access
+        - id: urn:transition:bob-continues-after-share-offer-cleared
+          label: Bob accepted the remote share
           from: urn:composite:bob-remote-share-offer
-          fromExitRef: urn:exit:bob-share-accepted
-          to: urn:composite:bob-federated-access-established
-          toEntryRef: urn:entry:bob-federated-access-established
-        - id: urn:transition:bob-ends-after-share-revoked
-          label: Bob's modeled path ends after the offer is revoked
-          from: urn:composite:bob-remote-share-offer
-          fromExitRef: urn:exit:bob-share-revoked
-          to: urn:exit:bob-remote-share-revoked-out-of-scope
+          fromExitRef: urn:exit:bob-share-offer-accepted
+          to: urn:composite:bob-pending-share-offer-cleared
+          toEntryRef: urn:entry:bob-pending-share-offer-cleared
+
 messageBundle:
   "urn:message:sharing-panel":
     label: "Sharing panel label"
@@ -250,15 +232,7 @@ messageBundle:
     defaultLocale: "en"
     locales:
       en:
-        value: "Accept"
-  "urn:message:open-action":
-    label: "Open action"
-    namespace: "nextcloud.actions"
-    messageKey: "actions.open"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Open"
+        value: "Accept share"
   "urn:message:report-pdf-file-name":
     label: "Report PDF file name"
     namespace: "nextcloud.files"
@@ -267,6 +241,14 @@ messageBundle:
     locales:
         en: 
           value: "report.pdf"
+  "urn:message:report-file-basename":
+    label: "Report file basename"
+    namespace: "nextcloud.files"
+    messageKey: "files.reportPdf.basename"
+    defaultLocale: "en"
+    locales:
+      en:
+        value: "report"
   "urn:message:report-pdf-shared-row":
     label: "Shared file row status"
     namespace: "nextcloud.files"
@@ -275,6 +257,14 @@ messageBundle:
     locales:
       en:
         value: "Shared"
+  "urn:message:shares-overview":
+    label: "Shares overview navigation"
+    namespace: "nextcloud.files"
+    messageKey: "files.sharesOverview"
+    defaultLocale: "en"
+    locales:
+      en:
+        value: "Shares"
         
 
 accessible:
@@ -287,6 +277,10 @@ accessible:
       label: "Remote recipient instance key"
       accessibleFeatureName: "federated-cloud-id"
       accessibleFeatureValue: "*"
+    "urn:feature:expanded-true":
+      label: "Expanded"
+      accessibleFeatureName: "expanded"
+      accessibleFeatureValue: "true"
 
   locators:
     "urn:locator:sharing-panel":
@@ -308,18 +302,21 @@ accessible:
     "urn:locator:incoming-share-row":
       label: "Incoming share row"
       role: "row"
-      accessibleFeatureRefs:
-        - "urn:feature:artifact-instance-key"
-    "urn:locator:accepted-share-row":
-      label: "Accepted share row"
+      accessibleNameRef: "urn:message:report-file-basename"
+    "urn:locator:bob-shared-report-file-row":
+      label: "Bob shared report file row"
       role: "row"
-      accessibleFeatureRefs:
-        - "urn:feature:artifact-instance-key"
-    "urn:locator:bob-file-row":
-      label: "Bob accepted file row"
+      accessibleNameRef: "urn:message:report-pdf-file-name"
+    "urn:locator:bob-shared-report-status-row":
+      label: "Bob shared report status row"
       role: "row"
+      accessibleNameRef: "urn:message:report-pdf-shared-row"
+    "urn:locator:shares-overview-link":
+      label: "Shares overview link"
+      role: "link"
+      accessibleNameRef: "urn:message:shares-overview"
       accessibleFeatureRefs:
-        - "urn:feature:artifact-instance-key"
+        - "urn:feature:expanded-true"
     "urn:locator:file-share-action":
       label: "File share action"
       role: "button"
@@ -344,12 +341,6 @@ accessible:
       accessibleNameRef: "urn:message:accept-action"
       contextLocatorRefs:
         - "urn:locator:incoming-share-row"
-    "urn:locator:bob-open-file-action":
-      label: "Bob open file action"
-      role: "button"
-      accessibleNameRef: "urn:message:open-action"
-      contextLocatorRefs:
-        - "urn:locator:bob-file-row"
 resolvers:
   "urn:resolver:artifact-instance":
     label: "Resolve repeated artifact surface instances"
@@ -381,6 +372,8 @@ inputModalityProfiles:
 observationEvents:
   "urn:observation-event:presence":
     label: "Presence"
+  "urn:observation-event:absence":
+    label: "Absence"
   "urn:observation-event:button-activation":
     label: "Button activation"
     requiredInputModalityProfileRefs:
@@ -388,6 +381,11 @@ observationEvents:
       - "urn:input-modality-profile:pointer"
   "urn:observation-event:option-activation":
     label: "Option activation"
+    requiredInputModalityProfileRefs:
+      - "urn:input-modality-profile:keyboard-enter"
+      - "urn:input-modality-profile:pointer"
+  "urn:observation-event:link-activation":
+    label: "Link activation"
     requiredInputModalityProfileRefs:
       - "urn:input-modality-profile:keyboard-enter"
       - "urn:input-modality-profile:pointer"
@@ -434,21 +432,19 @@ observationBindings:
     observationEventRef: "urn:observation-event:presence"
     locatorRefs:
       - "urn:locator:incoming-share-row"
-    surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
-  "urn:obs:bob-share-accepted-presence":
-    label: "Observe Bob share accepted"
-    observeSurfaceRef: "urn:surface:bob-share-accepted"
+  "urn:obs:bob-pending-share-offer-cleared-absence":
+    label: "Observe Bob pending share removed"
+    observeSurfaceRef: "urn:surface:bob-pending-share-offer-cleared"
+    observationEventRef: "urn:observation-event:absence"
+    locatorRefs:
+      - "urn:locator:incoming-share-row"
+  "urn:obs:bob-shared-report-visible-presence":
+    label: "Observe Bob shared report row"
+    observeSurfaceRef: "urn:surface:bob-shared-report-visible"
     observationEventRef: "urn:observation-event:presence"
     locatorRefs:
-      - "urn:locator:accepted-share-row"
-    surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
-  "urn:obs:bob-file-visible-presence":
-    label: "Observe Bob file visible"
-    observeSurfaceRef: "urn:surface:bob-file-visible"
-    observationEventRef: "urn:observation-event:presence"
-    locatorRefs:
-      - "urn:locator:bob-file-row"
-    surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
+      - "urn:locator:bob-shared-report-file-row"
+      - "urn:locator:bob-shared-report-status-row"
   "urn:obs:alice-opens-file-menu-activation":
     label: "Activate Alice share action"
     observeSurfaceRef: "urn:surface:alice-opens-file-menu"
@@ -481,21 +477,19 @@ observationBindings:
     observationEventRef: "urn:observation-event:button-activation"
     locatorRefs:
       - "urn:locator:bob-accept-share-button"
-    surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
-  "urn:obs:bob-opens-accepted-file-activation":
-    label: "Activate Bob open accepted file"
-    observeSurfaceRef: "urn:surface:bob-opens-accepted-file"
-    observationEventRef: "urn:observation-event:button-activation"
+  "urn:obs:bob-opens-shares-overview-activation":
+    label: "Activate Bob Shares overview navigation"
+    observeSurfaceRef: "urn:surface:bob-opens-shares-overview"
+    observationEventRef: "urn:observation-event:link-activation"
     locatorRefs:
-      - "urn:locator:bob-open-file-action"
-    surfaceInstanceResolverRef: "urn:resolver:artifact-instance"
+      - "urn:locator:shares-overview-link"
 
 phases:
   "urn:phase:remote-share-offered":
     label: "Remote share offered"
     order: 1
-  "urn:phase:federated-access-established":
-    label: "Federated access established"
+  "urn:phase:pending-share-offer-cleared":
+    label: "Remote share accepted"
     order: 2
 
 steps:
@@ -509,7 +503,7 @@ steps:
     order: 2
     compositeStateRef: "urn:composite:bob-remote-share-offer"
     phaseRef: "urn:phase:remote-share-offered"
-  "urn:step:bob-federated-access-established":
-    label: "Bob establishes federated access"
-    compositeStateRef: "urn:composite:bob-federated-access-established"
-    phaseRef: "urn:phase:federated-access-established"
+  "urn:step:bob-pending-share-offer-cleared":
+    label: "Bob verifies accepted remote-share access"
+    compositeStateRef: "urn:composite:bob-pending-share-offer-cleared"
+    phaseRef: "urn:phase:pending-share-offer-cleared"

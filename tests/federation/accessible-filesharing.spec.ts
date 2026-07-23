@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { ensureFederatedShareFixtureIsClean } from "./nextcloud-test-helpers.js";
+import {
+  ensureFederatedShareFixtureIsClean,
+  expectAcceptedFederatedShareHasMountedFile
+} from "./nextcloud-test-helpers.js";
 import { compileHappyPathPlan, loadFilesharingUjg } from "./ujg-resolver-2.js";
 import { runHappyPathPlan } from "./journeyRunner.js";
 
@@ -25,6 +28,7 @@ test("federated sharing happy path is keyboard accessible", async ({
       browser,
       testInfo
     });
+    await expectAcceptedFederatedShareHasMountedFile();
   } finally {
     //await runtime.dispose();
   }

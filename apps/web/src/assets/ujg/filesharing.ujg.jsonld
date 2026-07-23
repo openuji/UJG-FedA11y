@@ -179,10 +179,10 @@
       ],
       "stateRefs": [
         "urn:composite:bob-remote-share-offer",
-        "urn:composite:bob-federated-access-established"
+        "urn:composite:bob-pending-share-offer-cleared"
       ],
       "transitionRefs": [
-        "urn:transition:bob-continues-after-share-accepted"
+        "urn:transition:bob-continues-after-share-offer-cleared"
       ]
     },
     {
@@ -212,7 +212,7 @@
         "urn:transition:bob-accepts-share"
       ],
       "exitRefs": [
-        "urn:exit:bob-share-accepted"
+        "urn:exit:bob-share-offer-accepted"
       ]
     },
     {
@@ -234,15 +234,15 @@
     },
     {
       "@type": "JourneyExit",
-      "@id": "urn:exit:bob-share-accepted",
+      "@id": "urn:exit:bob-share-offer-accepted",
       "label": "Remote share accepted"
     },
     {
       "@type": "Transition",
       "@id": "urn:transition:bob-accepts-share",
-      "label": "Bob accepts the incoming share",
+      "label": "Bob accepts the remote share",
       "from": "urn:state:bob-incoming-share-visible",
-      "to": "urn:exit:bob-share-accepted",
+      "to": "urn:exit:bob-share-offer-accepted",
       "effectRef": "urn:effect:bob-accept-share"
     },
     {
@@ -253,77 +253,75 @@
     },
     {
       "@type": "CompositeState",
-      "@id": "urn:composite:bob-federated-access-established",
-      "label": "Bob federated access established",
-      "subjourneyId": "urn:journey:bob-federated-access-established"
+      "@id": "urn:composite:bob-pending-share-offer-cleared",
+      "label": "Bob pending share offer cleared",
+      "subjourneyId": "urn:journey:bob-pending-share-offer-cleared"
     },
     {
       "@type": "Journey",
-      "@id": "urn:journey:bob-federated-access-established",
-      "label": "Bob uses established federated access",
-      "defaultEntryRef": "urn:entry:bob-federated-access-established",
+      "@id": "urn:journey:bob-pending-share-offer-cleared",
+      "label": "Bob verifies the pending remote-share offer is cleared",
+      "defaultEntryRef": "urn:entry:bob-pending-share-offer-cleared",
       "entryRefs": [
-        "urn:entry:bob-federated-access-established"
+        "urn:entry:bob-pending-share-offer-cleared"
       ],
       "stateRefs": [
-        "urn:state:bob-share-accepted",
-        "urn:state:bob-file-visible"
+        "urn:state:bob-pending-share-offer-cleared",
+        "urn:state:bob-shared-report-visible"
       ],
       "transitionRefs": [
-        "urn:transition:bob-opens-accepted-file"
+        "urn:transition:bob-opens-shares-overview"
       ]
     },
     {
       "@type": "JourneyEntry",
-      "@id": "urn:entry:bob-federated-access-established",
-      "label": "Bob accepted share entry",
-      "stateRef": "urn:state:bob-share-accepted"
+      "@id": "urn:entry:bob-pending-share-offer-cleared",
+      "label": "Bob pending share offer cleared entry",
+      "stateRef": "urn:state:bob-pending-share-offer-cleared"
     },
     {
       "@type": "State",
-      "@id": "urn:state:bob-share-accepted",
-      "label": "Bob accepted the remote share"
+      "@id": "urn:state:bob-pending-share-offer-cleared",
+      "label": "Bob pending remote-share offer is cleared"
     },
     {
       "@type": "Surface",
-      "@id": "urn:surface:bob-share-accepted",
-      "label": "Bob accepted remote share",
-      "graphNodeRef": "urn:state:bob-share-accepted"
+      "@id": "urn:surface:bob-pending-share-offer-cleared",
+      "label": "Bob pending remote share row is removed",
+      "graphNodeRef": "urn:state:bob-pending-share-offer-cleared"
     },
     {
       "@type": "State",
-      "@id": "urn:state:bob-file-visible",
-      "label": "Bob can see the shared file"
+      "@id": "urn:state:bob-shared-report-visible",
+      "label": "Bob sees report.pdf marked as shared"
     },
     {
       "@type": "Surface",
-      "@id": "urn:surface:bob-file-visible",
-      "label": "Bob sees accepted file",
-      "graphNodeRef": "urn:state:bob-file-visible"
+      "@id": "urn:surface:bob-shared-report-visible",
+      "label": "Bob shared report row",
+      "graphNodeRef": "urn:state:bob-shared-report-visible"
     },
     {
       "@type": "Transition",
-      "@id": "urn:transition:bob-opens-accepted-file",
-      "label": "Bob opens the accepted shared file",
-      "from": "urn:state:bob-share-accepted",
-      "to": "urn:state:bob-file-visible",
-      "effectRef": "urn:effect:bob-open-accepted-file"
+      "@id": "urn:transition:bob-opens-shares-overview",
+      "label": "Bob opens Shares overview",
+      "from": "urn:state:bob-pending-share-offer-cleared",
+      "to": "urn:state:bob-shared-report-visible"
     },
     {
       "@type": "Surface",
-      "@id": "urn:surface:bob-opens-accepted-file",
-      "label": "Bob open-file action",
-      "graphNodeRef": "urn:transition:bob-opens-accepted-file"
+      "@id": "urn:surface:bob-opens-shares-overview",
+      "label": "Bob Shares overview link",
+      "graphNodeRef": "urn:transition:bob-opens-shares-overview"
     },
-   
     {
       "@type": "Transition",
-      "@id": "urn:transition:bob-continues-after-share-accepted",
-      "label": "Bob continues with established federated access",
+      "@id": "urn:transition:bob-continues-after-share-offer-cleared",
+      "label": "Bob accepted the remote share",
       "from": "urn:composite:bob-remote-share-offer",
-      "fromExitRef": "urn:exit:bob-share-accepted",
-      "to": "urn:composite:bob-federated-access-established",
-      "toEntryRef": "urn:entry:bob-federated-access-established"
+      "fromExitRef": "urn:exit:bob-share-offer-accepted",
+      "to": "urn:composite:bob-pending-share-offer-cleared",
+      "toEntryRef": "urn:entry:bob-pending-share-offer-cleared"
     },
     {
       "@type": "Touchpoint",
@@ -377,15 +375,7 @@
     {
       "@type": "Effect",
       "@id": "urn:effect:bob-accept-share",
-      "label": "Bob accepts the incoming remote share",
-      "consumedRefs": [
-        "urn:artifact:federated-share"
-      ]
-    },
-    {
-      "@type": "Effect",
-      "@id": "urn:effect:bob-open-accepted-file",
-      "label": "Bob opens the accepted file",
+      "label": "Bob accepts the remote share",
       "consumedRefs": [
         "urn:artifact:federated-share"
       ]
@@ -451,20 +441,7 @@
       "defaultLocale": "en",
       "locales": {
         "en": {
-          "value": "Accept"
-        }
-      }
-    },
-    {
-      "@type": "MessageBundle",
-      "@id": "urn:message:open-action",
-      "label": "Open action",
-      "namespace": "nextcloud.actions",
-      "messageKey": "actions.open",
-      "defaultLocale": "en",
-      "locales": {
-        "en": {
-          "value": "Open"
+          "value": "Accept share"
         }
       }
     },
@@ -483,6 +460,19 @@
     },
     {
       "@type": "MessageBundle",
+      "@id": "urn:message:report-file-basename",
+      "label": "Report file basename",
+      "namespace": "nextcloud.files",
+      "messageKey": "files.reportPdf.basename",
+      "defaultLocale": "en",
+      "locales": {
+        "en": {
+          "value": "report"
+        }
+      }
+    },
+    {
+      "@type": "MessageBundle",
       "@id": "urn:message:report-pdf-shared-row",
       "label": "Shared file row status",
       "namespace": "nextcloud.files",
@@ -491,6 +481,19 @@
       "locales": {
         "en": {
           "value": "Shared"
+        }
+      }
+    },
+    {
+      "@type": "MessageBundle",
+      "@id": "urn:message:shares-overview",
+      "label": "Shares overview navigation",
+      "namespace": "nextcloud.files",
+      "messageKey": "files.sharesOverview",
+      "defaultLocale": "en",
+      "locales": {
+        "en": {
+          "value": "Shares"
         }
       }
     },
@@ -507,6 +510,13 @@
       "label": "Remote recipient instance key",
       "accessibleFeatureName": "federated-cloud-id",
       "accessibleFeatureValue": "*"
+    },
+    {
+      "@type": "AccessibleFeature",
+      "@id": "urn:feature:expanded-true",
+      "label": "Expanded",
+      "accessibleFeatureName": "expanded",
+      "accessibleFeatureValue": "true"
     },
     {
       "@type": "AccessibleLocator",
@@ -542,26 +552,30 @@
       "@id": "urn:locator:incoming-share-row",
       "label": "Incoming share row",
       "role": "row",
-      "accessibleFeatureRefs": [
-        "urn:feature:artifact-instance-key"
-      ]
+      "accessibleNameRef": "urn:message:report-file-basename"
     },
     {
       "@type": "AccessibleLocator",
-      "@id": "urn:locator:accepted-share-row",
-      "label": "Accepted share row",
+      "@id": "urn:locator:bob-shared-report-file-row",
+      "label": "Bob shared report file row",
       "role": "row",
-      "accessibleFeatureRefs": [
-        "urn:feature:artifact-instance-key"
-      ]
+      "accessibleNameRef": "urn:message:report-pdf-file-name"
     },
     {
       "@type": "AccessibleLocator",
-      "@id": "urn:locator:bob-file-row",
-      "label": "Bob accepted file row",
+      "@id": "urn:locator:bob-shared-report-status-row",
+      "label": "Bob shared report status row",
       "role": "row",
+      "accessibleNameRef": "urn:message:report-pdf-shared-row"
+    },
+    {
+      "@type": "AccessibleLocator",
+      "@id": "urn:locator:shares-overview-link",
+      "label": "Shares overview link",
+      "role": "link",
+      "accessibleNameRef": "urn:message:shares-overview",
       "accessibleFeatureRefs": [
-        "urn:feature:artifact-instance-key"
+        "urn:feature:expanded-true"
       ]
     },
     {
@@ -602,16 +616,6 @@
       "accessibleNameRef": "urn:message:accept-action",
       "contextLocatorRefs": [
         "urn:locator:incoming-share-row"
-      ]
-    },
-    {
-      "@type": "AccessibleLocator",
-      "@id": "urn:locator:bob-open-file-action",
-      "label": "Bob open file action",
-      "role": "button",
-      "accessibleNameRef": "urn:message:open-action",
-      "contextLocatorRefs": [
-        "urn:locator:bob-file-row"
       ]
     },
     {
@@ -682,6 +686,15 @@
     },
     {
       "@type": "ObservationEvent",
+      "@id": "urn:observation-event:link-activation",
+      "label": "Link activation",
+      "requiredInputModalityProfileRefs": [
+        "urn:input-modality-profile:keyboard-enter",
+        "urn:input-modality-profile:pointer"
+      ]
+    },
+    {
+      "@type": "ObservationEvent",
       "@id": "urn:observation-event:text-entry-activation",
       "label": "Text entry activation",
       "requiredInputModalityProfileRefs": [
@@ -692,6 +705,11 @@
       "@type": "ObservationEvent",
       "@id": "urn:observation-event:presence",
       "label": "Presence"
+    },
+    {
+      "@type": "ObservationEvent",
+      "@id": "urn:observation-event:absence",
+      "label": "Absence"
     },
     {
       "@type": "ObservationBinding",
@@ -752,30 +770,28 @@
       "observationEventRef": "urn:observation-event:presence",
       "locatorRefs": [
         "urn:locator:incoming-share-row"
-      ],
-      "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+      ]
     },
     {
       "@type": "ObservationBinding",
-      "@id": "urn:obs:bob-share-accepted-presence",
-      "label": "Observe Bob share accepted",
-      "observeSurfaceRef": "urn:surface:bob-share-accepted",
-      "observationEventRef": "urn:observation-event:presence",
+      "@id": "urn:obs:bob-pending-share-offer-cleared-absence",
+      "label": "Observe Bob pending share removed",
+      "observeSurfaceRef": "urn:surface:bob-pending-share-offer-cleared",
+      "observationEventRef": "urn:observation-event:absence",
       "locatorRefs": [
-        "urn:locator:accepted-share-row"
-      ],
-      "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+        "urn:locator:incoming-share-row"
+      ]
     },
     {
       "@type": "ObservationBinding",
-      "@id": "urn:obs:bob-file-visible-presence",
-      "label": "Observe Bob file visible",
-      "observeSurfaceRef": "urn:surface:bob-file-visible",
+      "@id": "urn:obs:bob-shared-report-visible-presence",
+      "label": "Observe Bob shared report row",
+      "observeSurfaceRef": "urn:surface:bob-shared-report-visible",
       "observationEventRef": "urn:observation-event:presence",
       "locatorRefs": [
-        "urn:locator:bob-file-row"
-      ],
-      "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+        "urn:locator:bob-shared-report-file-row",
+        "urn:locator:bob-shared-report-status-row"
+      ]
     },
     {
       "@type": "ObservationBinding",
@@ -827,19 +843,17 @@
       "observationEventRef": "urn:observation-event:button-activation",
       "locatorRefs": [
         "urn:locator:bob-accept-share-button"
-      ],
-      "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+      ]
     },
     {
       "@type": "ObservationBinding",
-      "@id": "urn:obs:bob-opens-accepted-file-activation",
-      "label": "Activate Bob open accepted file",
-      "observeSurfaceRef": "urn:surface:bob-opens-accepted-file",
-      "observationEventRef": "urn:observation-event:button-activation",
+      "@id": "urn:obs:bob-opens-shares-overview-activation",
+      "label": "Activate Bob Shares overview navigation",
+      "observeSurfaceRef": "urn:surface:bob-opens-shares-overview",
+      "observationEventRef": "urn:observation-event:link-activation",
       "locatorRefs": [
-        "urn:locator:bob-open-file-action"
-      ],
-      "surfaceInstanceResolverRef": "urn:resolver:artifact-instance"
+        "urn:locator:shares-overview-link"
+      ]
     },
     {
       "@type": "Phase",
@@ -849,8 +863,8 @@
     },
     {
       "@type": "Phase",
-      "@id": "urn:phase:federated-access-established",
-      "label": "Federated access established",
+      "@id": "urn:phase:pending-share-offer-cleared",
+      "label": "Remote share accepted",
       "order": 2
     },
     {
@@ -871,10 +885,10 @@
     },
     {
       "@type": "Step",
-      "@id": "urn:step:bob-federated-access-established",
-      "label": "Bob establishes federated access",
-      "compositeStateRef": "urn:composite:bob-federated-access-established",
-      "phaseRef": "urn:phase:federated-access-established"
+      "@id": "urn:step:bob-pending-share-offer-cleared",
+      "label": "Bob verifies accepted remote-share access",
+      "compositeStateRef": "urn:composite:bob-pending-share-offer-cleared",
+      "phaseRef": "urn:phase:pending-share-offer-cleared"
     }
   ]
 }
