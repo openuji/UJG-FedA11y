@@ -27,6 +27,8 @@ type HappyPathPlanItemBase = {
   touchpointId: string;
   phaseId: string;
   stepId: string;
+  entryId: string;
+  entryBindingValue?: string;
 };
 export type HappyPathPlanItem =
   | (HappyPathPlanItemBase & { kind: "state"; target: ResolvedStatePresenceTarget; id: string })
@@ -87,8 +89,7 @@ export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
         return agg
     }, new Map())
 
-    const journeEntryIndex =  nodes.filter(n => n['@type'] === 'JourneyEntryIndex')
-    const entryState = journeEntryIndex.flatMap(current => current.stateRefs || [])
+    const entryState = [...new Set(touchpoints.flatMap(touchpoint => touchpoint.compositeStateRefs || []))]
 
     
     const compositeStates = nodes.filter(n => n['@type'] === 'CompositeState')
@@ -138,6 +139,8 @@ export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
 
     const transitionsMap = nodes.filter(n => n['@type'] === 'Transition')
         .reduce((agg, current) => agg.set(current['@id'], current), new Map())
+    const entryBindingsByEntryRef = nodes.filter(n => n['@type'] === 'EntryBinding')
+        .reduce((agg, current) => agg.set(current.entryRef, current), new Map())
     
  
     const compositeStatesTransitions = compositeStates.reduce((agg, current) => {
@@ -147,11 +150,16 @@ export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
         
         const journey = journeysMap.get(jorneyId)
         const journeyTransitions = (journey.transitionRefs || []).map((t: string) => transitionsMap.get(t))
-        const journeyEnterStates = (journey.entryRefs || []).map((eRef: string) =>journeyEntrysMap.get(eRef)).map((e: AnyNode) => statesMap.get(e.stateRef))
+        const defaultEntry = journeyEntrysMap.get(journey.defaultEntryRef)
+        if (!defaultEntry) throw new Error(`Missing default entry ${journey.defaultEntryRef} for ${jorneyId}`)
+        const journeyEnterStates = [statesMap.get(defaultEntry.stateRef)]
         const parentCS = Array.from(flatCS.entries()).find(([_, value]) => (value.childs || []).some((c: any) => c.id === compositeStateId))
         const parentCompositeState = parentCS && parentCS[0] && compositeStatesMap.get(parentCS[0]) || undefined 
+        const entryBinding = entryBindingsByEntryRef.get(defaultEntry["@id"])
         
         agg.set(compositeStateId, {
+            entryId: defaultEntry["@id"],
+            entryBindingValue: typeof entryBinding?.value === "string" ? entryBinding.value : undefined,
             journeyTransitions,
             journeyEnterStates, 
             parentCompositeState 
@@ -238,7 +246,9 @@ export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
           userId,
           touchpointId: touchPoint["@id"],
           phaseId: step.phaseRef,
-          stepId: step["@id"]
+          stepId: step["@id"],
+          entryId: compositeJourney.entryId,
+          entryBindingValue: compositeJourney.entryBindingValue
         }))
       })
     }

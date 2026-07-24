@@ -26,22 +26,9 @@ const users = new Map<string, NextcloudUser>([
   ["urn:user:alice", aliceUser],
   ["urn:user:bob", bobUser]
 ]);
-const filesRoute = "/apps/files/";
-const surfaceRoutes = new Map<string, string>([
-  ["urn:surface:alice-files-ready", filesRoute],
-  ["urn:surface:alice-opens-file-menu", filesRoute],
-  ["urn:surface:alice-share-panel-open", filesRoute],
-  ["urn:surface:alice-enters-remote-bob", filesRoute],
-  ["urn:surface:alice-remote-recipient-entered", filesRoute],
-  ["urn:surface:alice-selects-remote-recipient", filesRoute],
-  ["urn:surface:alice-share-permissions-open", filesRoute],
-  ["urn:surface:alice-confirms-share", filesRoute],
-  ["urn:surface:alice-share-confirmed", filesRoute],
-  ["urn:surface:bob-incoming-share-visible", "/apps/files/pendingshares"],
-  ["urn:surface:bob-accepts-share", "/apps/files/pendingshares"],
-  ["urn:surface:bob-pending-share-offer-cleared", "/apps/files/pendingshares"],
-  ["urn:surface:bob-opens-shares-overview", "/apps/files/pendingshares"],
-  ["urn:surface:bob-shared-report-visible", "/apps/files/shareoverview"]
+const entryBindingRoutes = new Map<string, string>([
+  ["nextcloud.files", "/apps/files/"],
+  ["nextcloud.pendingShares", "/apps/files/pendingshares"]
 ]);
 
 export const runHappyPathPlan = async ({
@@ -55,7 +42,7 @@ export const runHappyPathPlan = async ({
 }) => {
   const pages = new Map<string, Page>();
   const currentRoutes = new Map<string, string>();
-  let previousAction: HappyPathPlanItem | undefined;
+  const materializedUsers = new Set<string>();
 
   try {
     for (const userId of new Set(plan.items.map((item) => item.userId))) {
@@ -69,21 +56,21 @@ export const runHappyPathPlan = async ({
     for (const item of plan.items) {
       testInfo.annotations.push({ type: "ujg-plan-item", description: itemDescription(item) });
       if (item.kind === "control-flow") {
-        previousAction = item;
         continue;
       }
       const page = pages.get(item.userId);
       if (!page) throw new Error(`No Playwright page for ${item.userId}`);
       const user = users.get(item.userId);
       if (!user) throw new Error(`No Nextcloud user mapping for ${item.userId}`);
-      const route = routeForItem(item);
-      const followsSameUserTransition =
-        item.kind === "state" &&
-        previousAction?.kind === "transition" &&
-        previousAction.userId === item.userId;
-      if (currentRoutes.get(item.userId) !== route && !followsSameUserTransition) {
-        await openNextcloudRoute(page, user, route);
-        currentRoutes.set(item.userId, route);
+      const route = routeForEntryBinding(item.entryBindingValue);
+      if (route) {
+        if (currentRoutes.get(item.userId) !== route) {
+          await openNextcloudRoute(page, user, route);
+          currentRoutes.set(item.userId, route);
+        }
+        materializedUsers.add(item.userId);
+      } else if (!materializedUsers.has(item.userId)) {
+        throw new Error(`No entry binding available to boot ${itemDescription(item)}`);
       }
       const locator = toPlaywrightObservationLocator(page, item.target.bindings);
       if (item.kind === "state") {
@@ -93,8 +80,6 @@ export const runHappyPathPlan = async ({
         if (item.target.expectedCount === 1) {
           await expect(locator).toBeVisible({ timeout: stateAssertionTimeout });
         }
-        currentRoutes.set(item.userId, route);
-        previousAction = item;
         continue;
       }
 
@@ -117,8 +102,8 @@ export const runHappyPathPlan = async ({
         if (item.target.activation.effectRef) {
           await effectCompletionWaits.get(item.target.activation.effectRef)?.();
         }
+        if (!route) currentRoutes.delete(item.userId);
       }
-      previousAction = item;
     }
   } finally {
     await Promise.all([...pages.values()].map((page) => page.close()));
@@ -131,11 +116,11 @@ async function openNextcloudRoute(page: Page, user: NextcloudUser, route: string
   await expect(page.locator("#app-content, #content, main").first()).toBeVisible();
 }
 
-function routeForItem(item: HappyPathPlanItem | undefined): string {
-  if (!item || item.kind === "control-flow") return filesRoute;
-  const surfaceId =
-    item.kind === "state" ? item.target.observation.surfaceId : item.target.activation.surfaceId;
-  return surfaceRoutes.get(surfaceId) ?? filesRoute;
+function routeForEntryBinding(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const route = entryBindingRoutes.get(value);
+  if (!route) throw new Error(`No Nextcloud route for EntryBinding value ${value}`);
+  return route;
 }
 
 function itemDescription(item: HappyPathPlanItem): string {

@@ -41,9 +41,23 @@ effects:
 journeyEntryIndex:
   id: "urn:index:nextcloud-federated-sharing"
   label: "Federated sharing local journey entries"
-  stateRefs:
-    - "urn:composite:alice-federated-sharing"
-    - "urn:composite:bob-remote-share"
+  entryRefs:
+    - "urn:entry:alice-federated-sharing"
+    - "urn:entry:bob-remote-share"
+
+entryBindings:
+  "urn:entry-binding:alice-files":
+    label: "Alice files entry boot"
+    entryRef: "urn:entry:alice-federated-sharing"
+    value: "nextcloud.files"
+  "urn:entry-binding:bob-remote-share":
+    label: "Bob remote-share entry boot"
+    entryRef: "urn:entry:bob-remote-share"
+    value: "nextcloud.pendingShares"
+  "urn:entry-binding:bob-remote-share-offer":
+    label: "Bob remote-share offer entry boot"
+    entryRef: "urn:entry:bob-remote-share-offer"
+    value: "nextcloud.pendingShares"
 
 states:
   "urn:composite:alice-federated-sharing":

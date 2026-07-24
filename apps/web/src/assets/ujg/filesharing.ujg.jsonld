@@ -6,6 +6,7 @@
     "https://ujg.specs.openuji.org/ed/ns/phase.context.jsonld",
     "https://ujg.specs.openuji.org/ed/ns/l10n.context.jsonld",
     "https://ujg.specs.openuji.org/ed/ns/observability.context.jsonld",
+    "https://ujg.specs.openuji.org/ed/ns/entry-binding.context.jsonld",
     "https://ujg.specs.openuji.org/ed/ns/effect.context.jsonld",
     "https://ujg.specs.openuji.org/ed/ns/artifact.context.jsonld"
   ],
@@ -16,10 +17,31 @@
       "@type": "JourneyEntryIndex",
       "@id": "urn:index:nextcloud-federated-sharing",
       "label": "Federated sharing local journey entries",
-      "stateRefs": [
-        "urn:composite:alice-federated-sharing",
-        "urn:composite:bob-remote-share"
+      "entryRefs": [
+        "urn:entry:alice-federated-sharing",
+        "urn:entry:bob-remote-share"
       ]
+    },
+    {
+      "@type": "EntryBinding",
+      "@id": "urn:entry-binding:alice-files",
+      "label": "Alice files entry boot",
+      "entryRef": "urn:entry:alice-federated-sharing",
+      "value": "nextcloud.files"
+    },
+    {
+      "@type": "EntryBinding",
+      "@id": "urn:entry-binding:bob-remote-share",
+      "label": "Bob remote-share entry boot",
+      "entryRef": "urn:entry:bob-remote-share",
+      "value": "nextcloud.pendingShares"
+    },
+    {
+      "@type": "EntryBinding",
+      "@id": "urn:entry-binding:bob-remote-share-offer",
+      "label": "Bob remote-share offer entry boot",
+      "entryRef": "urn:entry:bob-remote-share-offer",
+      "value": "nextcloud.pendingShares"
     },
     {
       "@type": "CompositeState",
