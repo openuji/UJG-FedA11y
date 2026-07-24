@@ -64,6 +64,10 @@ export type AxeAuditSummary = {
   inapplicable: number;
 };
 
+export type AxePathAuditScanSummaries = {
+  [scanId in AxeAuditScanId]: AxeAuditSummary;
+};
+
 export type AxeAuditReport = {
   auditId: string;
   createdAt: string;
@@ -132,6 +136,7 @@ export type AxePathAuditItem = {
   sourceJsonHref?: string;
   sourceHtmlHref?: string;
   summary?: AxeAuditSummary;
+  scanSummaries?: AxePathAuditScanSummaries;
   findings?: AxePathAuditFindings;
 };
 
@@ -144,6 +149,7 @@ export type AxePathAuditSummary = {
   incomplete: number;
   passes: number;
   inapplicable: number;
+  scanSummaries: AxePathAuditScanSummaries;
 };
 
 export type AxePathAuditReport = {

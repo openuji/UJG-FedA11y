@@ -76,12 +76,15 @@ You may also see an `axe-path-attachments/` directory. It contains the source HT
 Use this first for manual review. It includes:
 
 - run metadata and summary counts
+- separate `page-state` and `matched-surface` scan metrics
 - one item for each UJG plan item
 - item status: `audited`, `skipped`, or `not-applicable`
 - exact violations and incomplete checks for each audited item
 - links to the detailed per-audit JSON and HTML reports
 - links from each finding node to the anchored node in the detailed HTML report
 - screenshot links when highlighted screenshots were captured
+
+Path items are collapsible. Expand an item to see its metadata, report links, and scan details. Within each audited item, `Page state` and `Matched surface` are separate collapsible sections.
 
 ### Aggregate JSON
 
@@ -97,6 +100,7 @@ Top-level fields:
 - `createdAt`
 - `metadata`
 - `summary`
+- `summary.scanSummaries`
 - `items`
 
 Each audited item includes:
@@ -105,6 +109,7 @@ Each audited item includes:
 - `sourceJsonHref`
 - `sourceHtmlHref`
 - `summary`
+- `scanSummaries`
 - `findings.violations`
 - `findings.incomplete`
 

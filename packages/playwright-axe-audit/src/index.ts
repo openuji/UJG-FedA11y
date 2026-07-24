@@ -20,6 +20,7 @@ export type {
   AxePathAuditItemStatus,
   AxePathAuditReport,
   AxePathAuditReportInput,
+  AxePathAuditScanSummaries,
   AxeResults,
   AxeScanEvidence,
   AxeScanResults
