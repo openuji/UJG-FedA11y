@@ -24,6 +24,7 @@ users:
 artifacts:
   "urn:artifact:federated-share":
     label: "Federated share for the test file"
+    nameRef: "urn:message:report-pdf-file-name"
     sourceTouchpointRef: "urn:touchpoint:nextcloud-a"
     targetTouchpointRefs:
       - "urn:touchpoint:nextcloud-b"
@@ -186,7 +187,7 @@ states:
                   id: urn:surface:bob-pending-share-offer-cleared
                   label: Bob pending remote share row is removed
               urn:state:bob-shared-report-visible:
-                label: Bob sees report.pdf marked as shared
+                label: Bob sees file marked as shared
                 surface:
                   id: urn:surface:bob-shared-report-visible
                   label: Bob shared report row
@@ -206,80 +207,77 @@ states:
           to: urn:composite:bob-pending-share-offer-cleared
           toEntryRef: urn:entry:bob-pending-share-offer-cleared
 
-messageBundle:
+locales:
+  "urn:locale:en":
+    label: "English"
+    localeCode: "en"
+
+messageMeta:
   "urn:message:sharing-panel":
     label: "Sharing panel label"
-    namespace: "nextcloud.sharing"
-    messageKey: "sharing.panel"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Sharing"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:remote-recipient-input":
     label: "Remote recipient input label"
-    namespace: "nextcloud.sharing"
-    messageKey: "sharing.remoteRecipientInput"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Enter external recipients"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:share-action":
     label: "Sharing options action"
-    namespace: "nextcloud.actions"
-    messageKey: "actions.share"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Sharing options"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:save-share-action":
     label: "Save share action"
-    namespace: "nextcloud.actions"
-    messageKey: "actions.saveShare"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Save share"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:accept-action":
     label: "Accept action"
-    namespace: "nextcloud.actions"
-    messageKey: "actions.accept"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Accept share"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:report-pdf-file-name":
     label: "Report PDF file name"
-    namespace: "nextcloud.files"
-    messageKey: "files.reportPdf.fileName"
-    defaultLocale: "en"
-    locales:
-        en: 
-          value: "report.pdf"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:report-file-basename":
     label: "Report file basename"
-    namespace: "nextcloud.files"
-    messageKey: "files.reportPdf.basename"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "report"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:report-pdf-shared-row":
     label: "Shared file row status"
-    namespace: "nextcloud.files"
-    messageKey: "files.reportPdf.sharedRow"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Shared"
+    defaultLocaleRef: "urn:locale:en"
   "urn:message:shares-overview":
     label: "Shares overview navigation"
-    namespace: "nextcloud.files"
-    messageKey: "files.sharesOverview"
-    defaultLocale: "en"
-    locales:
-      en:
-        value: "Shares"
-        
+    defaultLocaleRef: "urn:locale:en"
+
+messages:
+  "urn:message-value:sharing-panel:en":
+    messageMetaRef: "urn:message:sharing-panel"
+    localeRef: "urn:locale:en"
+    value: "Sharing"
+  "urn:message-value:remote-recipient-input:en":
+    messageMetaRef: "urn:message:remote-recipient-input"
+    localeRef: "urn:locale:en"
+    value: "Enter external recipients"
+  "urn:message-value:share-action:en":
+    messageMetaRef: "urn:message:share-action"
+    localeRef: "urn:locale:en"
+    value: "Sharing options"
+  "urn:message-value:save-share-action:en":
+    messageMetaRef: "urn:message:save-share-action"
+    localeRef: "urn:locale:en"
+    value: "Save share"
+  "urn:message-value:accept-action:en":
+    messageMetaRef: "urn:message:accept-action"
+    localeRef: "urn:locale:en"
+    value: "Accept share"
+  "urn:message-value:report-pdf-file-name:en":
+    messageMetaRef: "urn:message:report-pdf-file-name"
+    localeRef: "urn:locale:en"
+    value: "report.pdf"
+  "urn:message-value:report-file-basename:en":
+    messageMetaRef: "urn:message:report-file-basename"
+    localeRef: "urn:locale:en"
+    value: "report"
+  "urn:message-value:report-pdf-shared-row:en":
+    messageMetaRef: "urn:message:report-pdf-shared-row"
+    localeRef: "urn:locale:en"
+    value: "Shared"
+  "urn:message-value:shares-overview:en":
+    messageMetaRef: "urn:message:shares-overview"
+    localeRef: "urn:locale:en"
+    value: "Shares"
 
 accessible:
   features:

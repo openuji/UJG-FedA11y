@@ -495,7 +495,50 @@ function resolveMessage(index: NodeIndex, messageRef: unknown): string | undefin
   }
 
   const messageId = requiredString(messageRef, "messageRef");
-  const bundle = requireNode(index, messageId, "MessageBundle");
+  const messageNode = index.get(messageId);
+
+  if (!messageNode) {
+    throw new Error(`Missing UJG node ${messageId}`);
+  }
+
+  if (hasType(messageNode, "MessageMeta")) {
+    return resolveMessageMeta(index, messageNode);
+  }
+
+  if (hasType(messageNode, "MessageBundle")) {
+    return resolveMessageBundle(messageNode);
+  }
+
+  throw new Error(
+    `Expected ${messageId} to be MessageMeta, got ${typeList(messageNode).join(", ")}`
+  );
+}
+
+function resolveMessageMeta(index: NodeIndex, meta: UjgNode): string {
+  const defaultLocaleRef = requiredString(
+    meta.defaultLocaleRef,
+    `${meta["@id"]}.defaultLocaleRef`
+  );
+  requireNode(index, defaultLocaleRef, "Locale");
+
+  const messages = [...index.values()].filter(
+    (node) =>
+      hasType(node, "Message") &&
+      optionalString(node.messageMetaRef) === meta["@id"] &&
+      optionalString(node.localeRef) === defaultLocaleRef
+  );
+
+  if (messages.length !== 1) {
+    throw new Error(
+      `Expected one Message for ${meta["@id"]} and ${defaultLocaleRef}, found ${messages.length}`
+    );
+  }
+
+  return requiredString(messages[0].value, `${messages[0]["@id"]}.value`);
+}
+
+function resolveMessageBundle(bundle: UjgNode): string {
+  const messageId = bundle["@id"];
   const defaultLocale = requiredString(bundle.defaultLocale, `${messageId}.defaultLocale`);
   const locales = requiredRecord(bundle.locales, `${messageId}.locales`);
   const locale = requiredRecord(locales[defaultLocale], `${messageId}.locales.${defaultLocale}`);
