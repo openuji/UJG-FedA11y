@@ -27,7 +27,7 @@ export default defineConfig({
   testDir: ".",
   testMatch: ["**/*.spec.ts"],
   fullyParallel: false,
-  reporter: [["list"]],
+  reporter: [["list"], ["./accessibility-report-reporter.ts"]],
   timeout: 60_000,
   expect: {
     timeout: 15_000

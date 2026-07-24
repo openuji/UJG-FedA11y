@@ -75,3 +75,110 @@ export type AxeAuditReport = {
   scans: AxeScanResults;
   evidence: AxeEvidence;
 };
+
+export type AxePathAuditItemStatus = "audited" | "skipped" | "not-applicable";
+
+export type AxePathAuditFindingNodeEvidence = {
+  url: string;
+  urlPath: string;
+  query?: string;
+  domStatus: AxeDomStatus;
+  domStatusReason: string;
+  matchCount?: number;
+  matchedIndex?: number;
+  resolved: boolean;
+  visible: boolean;
+  screenshotError?: string;
+};
+
+export type AxePathAuditFindingNode = {
+  nodeIndex: number;
+  target: string[];
+  failureSummary?: string;
+  htmlHref: string;
+  screenshotHref?: string;
+  screenshotError?: string;
+  evidence?: AxePathAuditFindingNodeEvidence;
+};
+
+export type AxePathAuditFinding = {
+  type: AxeRuleResultType;
+  scanId: AxeAuditScanId;
+  ruleId: string;
+  impact?: string;
+  help: string;
+  helpUrl: string;
+  description: string;
+  nodes: AxePathAuditFindingNode[];
+};
+
+export type AxePathAuditFindings = {
+  violations: AxePathAuditFinding[];
+  incomplete: AxePathAuditFinding[];
+};
+
+export type AxePathAuditItem = {
+  itemId: string;
+  groupId?: string;
+  groupLabel?: string;
+  status: AxePathAuditItemStatus;
+  reason?: string;
+  metadata: AxeAuditMetadata;
+  auditId?: string;
+  createdAt?: string;
+  url?: string;
+  strict?: boolean;
+  wcagTags?: string[];
+  sourceJsonHref?: string;
+  sourceHtmlHref?: string;
+  summary?: AxeAuditSummary;
+  findings?: AxePathAuditFindings;
+};
+
+export type AxePathAuditSummary = {
+  items: number;
+  audited: number;
+  skipped: number;
+  notApplicable: number;
+  violations: number;
+  incomplete: number;
+  passes: number;
+  inapplicable: number;
+};
+
+export type AxePathAuditReport = {
+  schemaVersion: "ujg-fed-a11y.axe-path.v1";
+  reportId: string;
+  createdAt: string;
+  metadata: AxeAuditMetadata;
+  summary: AxePathAuditSummary;
+  items: AxePathAuditItem[];
+};
+
+export type AxePathAuditAuditedItemInput = {
+  itemId: string;
+  groupId?: string;
+  groupLabel?: string;
+  metadata?: AxeAuditMetadata;
+  report: AxeAuditReport;
+};
+
+export type AxePathAuditUnauditedItemInput = {
+  itemId: string;
+  groupId?: string;
+  groupLabel?: string;
+  metadata?: AxeAuditMetadata;
+  status: "skipped" | "not-applicable";
+  reason: string;
+};
+
+export type AxePathAuditItemInput =
+  | AxePathAuditAuditedItemInput
+  | AxePathAuditUnauditedItemInput;
+
+export type AxePathAuditReportInput = {
+  reportId: string;
+  createdAt?: string;
+  metadata?: AxeAuditMetadata;
+  items: AxePathAuditItemInput[];
+};

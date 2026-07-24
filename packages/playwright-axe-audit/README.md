@@ -13,7 +13,10 @@ The package is intentionally not UJG-specific. UJG tests can pass state, surface
 
 ```ts
 import {
+  attachAxePathAuditReport,
   axeFailureMessage,
+  buildAxePathAuditReport,
+  renderAxePathAuditHtml,
   runAxeAudit,
   shouldFailForAxeViolations
 } from "@ujg-fed-a11y/playwright-axe-audit";
@@ -72,6 +75,40 @@ expect(
   axeFailureMessage(report)
 ).toBe(false);
 ```
+
+## Path Aggregate Reports
+
+Use path aggregate reports when one test runs several related axe audits and needs a single artifact for the full user path.
+
+```ts
+const pathReport = buildAxePathAuditReport({
+  reportId: "federated-sharing-standard.axe-path",
+  metadata: {
+    mode: "standard"
+  },
+  items: [
+    {
+      itemId: "standard-000-alice-files-ready",
+      report: axeReport
+    },
+    {
+      itemId: "standard-012-bob-pending-share-offer-cleared",
+      status: "skipped",
+      reason: "Expected match count 0 cannot be scoped to one matched locator."
+    }
+  ]
+});
+
+await attachAxePathAuditReport(testInfo, pathReport);
+```
+
+Path aggregate helpers:
+
+- `buildAxePathAuditReport(input)`: normalizes audited, skipped, and not-applicable path items into one JSON report.
+- `renderAxePathAuditHtml(report)`: renders a human-readable HTML report.
+- `attachAxePathAuditReport(testInfo, report)`: writes and attaches aggregate JSON/HTML to Playwright output.
+
+The aggregate JSON includes summaries, item metadata, exact `violations` and `incomplete` findings, node targets, failure summaries, evidence, `screenshotHref`, and `htmlHref`. It intentionally does not copy raw `node.html`; `htmlHref` points to the anchored node in the detailed per-audit HTML report.
 
 ## Scan Logic
 
@@ -213,6 +250,22 @@ axe-alice-files-ready-<scan-id>-<violation-id>-<node-index>.png
 ```
 
 HTML reports embed screenshots as base64 data URIs when the image file is available, so copied Playwright HTML attachments still display the screenshot inline.
+
+For `reportId = "federated-sharing-standard.axe-path"`, path aggregate output includes:
+
+```text
+federated-sharing-standard.axe-path.json
+federated-sharing-standard.axe-path.html
+```
+
+The aggregate JSON and HTML are attached to Playwright as:
+
+```text
+axe-path-federated-sharing-standard.axe-path.json
+axe-path-federated-sharing-standard.axe-path.html
+```
+
+The root aggregate HTML file links to sibling per-audit reports and screenshots. The copied Playwright HTML attachment is rendered with a base URL that points back to the test output directory, so those links also work from the `attachments/` copy.
 
 ## Report Structure
 

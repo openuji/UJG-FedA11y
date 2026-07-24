@@ -1,7 +1,13 @@
 import { escapeAttribute, escapeHtml, row } from "./html.js";
 import { type ScreenshotEmbeds } from "./screenshot-embeds.js";
 import {
+  axeNodeHtmlId,
+  axeRuleResultHtmlId,
+  axeScanHtmlId
+} from "../shared/file-names.js";
+import {
   type AxeAuditReport,
+  type AxeAuditScanId,
   type AxeNode,
   type AxeNodeEvidence,
   type AxeResults,
@@ -40,8 +46,15 @@ export function renderHtmlReport(
     `<h1>${escapeHtml(report.auditId)} axe report</h1>`,
     renderMetadata(report),
     renderSummary(report),
-    renderScan("Page State", report.scans.pageState, report.evidence.pageState, screenshotEmbeds),
     renderScan(
+      "page-state",
+      "Page State",
+      report.scans.pageState,
+      report.evidence.pageState,
+      screenshotEmbeds
+    ),
+    renderScan(
+      "matched-surface",
       "Matched Surface",
       report.scans.matchedSurface,
       report.evidence.matchedSurface,
@@ -83,6 +96,7 @@ function renderSummary(report: AxeAuditReport): string {
 }
 
 function renderScan(
+  scanId: AxeAuditScanId,
   label: string,
   results: AxeResults,
   evidence: AxeScanEvidence,
@@ -91,6 +105,7 @@ function renderScan(
   const violations = results.violations
     .map((violation) => renderRuleResult(
       "violation",
+      scanId,
       violation,
       evidence.nodes.filter((node) => isEvidenceForResult(node, "violation", violation.id)),
       screenshotEmbeds
@@ -99,6 +114,7 @@ function renderScan(
   const incomplete = results.incomplete
     .map((incompleteResult) => renderRuleResult(
       "incomplete",
+      scanId,
       incompleteResult,
       evidence.nodes.filter((node) => isEvidenceForResult(node, "incomplete", incompleteResult.id)),
       screenshotEmbeds
@@ -106,7 +122,7 @@ function renderScan(
     .join("\n");
 
   return [
-    "<section>",
+    `<section id="${escapeAttribute(axeScanHtmlId(scanId))}">`,
     `<h2>${escapeHtml(label)}</h2>`,
     "<table>",
     row("Violations", String(results.violations.length)),
@@ -124,17 +140,20 @@ function renderScan(
 
 function renderRuleResult(
   resultType: AxeRuleResultType,
+  scanId: AxeAuditScanId,
   result: AxeRuleResult,
   evidence: AxeNodeEvidence[],
   screenshotEmbeds: ScreenshotEmbeds
 ): string {
   const nodes = result.nodes
-    .map((node, nodeIndex) => renderNode(node, evidence[nodeIndex], screenshotEmbeds))
+    .map((node, nodeIndex) =>
+      renderNode(scanId, resultType, result.id, node, nodeIndex, evidence[nodeIndex], screenshotEmbeds)
+    )
     .join("\n");
   const label = resultType === "incomplete" ? "Incomplete" : "Violation";
 
   return [
-    `<article class="rule-result ${escapeAttribute(resultType)}">`,
+    `<article class="rule-result ${escapeAttribute(resultType)}" id="${escapeAttribute(axeRuleResultHtmlId(scanId, resultType, result.id))}">`,
     `<h4>${escapeHtml(label)}: ${escapeHtml(result.id)}: ${escapeHtml(result.help)}</h4>`,
     `<p class="impact">Impact: ${escapeHtml(result.impact ?? "unknown")}</p>`,
     `<p><a href="${escapeAttribute(result.helpUrl)}">${escapeHtml(result.helpUrl)}</a></p>`,
@@ -153,12 +172,16 @@ function isEvidenceForResult(
 }
 
 function renderNode(
+  scanId: AxeAuditScanId,
+  resultType: AxeRuleResultType,
+  ruleId: string,
   node: AxeNode,
+  nodeIndex: number,
   evidence: AxeNodeEvidence | undefined,
   screenshotEmbeds: ScreenshotEmbeds
 ): string {
   return [
-    "<details open>",
+    `<details open id="${escapeAttribute(axeNodeHtmlId(scanId, resultType, ruleId, nodeIndex))}">`,
     `<summary>${escapeHtml(node.target.join(", "))}</summary>`,
     evidence ? renderNodeEvidence(evidence, screenshotEmbeds) : "",
     "<h4>HTML</h4>",

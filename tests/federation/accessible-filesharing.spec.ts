@@ -43,7 +43,14 @@ modes.forEach((mode) => {
       plan,
       browser,
       testInfo,
-      context: getContext(mode)
+      context: getContext(mode),
+      audit: {
+        reportId: `federated-sharing-${mode}.axe-path`,
+        metadata: {
+          documentId: document["@id"],
+          testMode: mode
+        }
+      }
     });
   });
 });
