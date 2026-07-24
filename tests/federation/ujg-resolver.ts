@@ -36,6 +36,7 @@ export type ResolvedObservationBinding = {
   surfaceId: string;
   eventId: string;
   eventLabel?: string;
+  expectedMatchCount?: number;
   requiredInputModalityProfiles: ResolvedInputModalityProfile[];
   locators: ResolvedAccessibleLocator[];
   surfaceInstanceResolver?: ResolvedSurfaceInstanceResolver;
@@ -57,13 +58,13 @@ export type ResolvedStateObservation = {
   stateLabel?: string;
   surfaceId: string;
   surfaceLabel?: string;
-  expectedCount: number;
+  expectedMatchCount: number;
   bindings: ResolvedObservationBinding[];
 };
 
-export type ResolvedStatePresenceTarget = {
+export type ResolvedStateObservationTarget = {
   observation: ResolvedStateObservation;
-  expectedCount: number;
+  expectedMatchCount: number;
   bindings: ResolvedObservationBinding[];
 };
 
@@ -122,7 +123,7 @@ export function parseUjgDocument(source: string): UjgDocument {
   return parsed;
 }
 
-export function resolveStatePresenceObservation(
+export function resolveStateObservation(
   document: UjgDocument,
   stateId: string
 ): ResolvedStateObservation {
@@ -136,9 +137,12 @@ export function resolveStatePresenceObservation(
   if (bindings.length === 0) {
     throw new Error(`No state ObservationBinding found for surface ${surface["@id"]}`);
   }
-  const expectedCounts = new Set(bindings.map((binding) => expectedCountForEvent(binding.eventId)));
-  if (expectedCounts.size !== 1) {
-    throw new Error(`State surface ${surface["@id"]} mixes incompatible observation events`);
+  if (bindings.length !== 1) {
+    throw new Error(`Expected one state ObservationBinding for surface ${surface["@id"]}, found ${bindings.length}`);
+  }
+  const expectedMatchCount = bindings[0].expectedMatchCount;
+  if (expectedMatchCount === undefined) {
+    throw new Error(`State ObservationBinding ${bindings[0].id} must declare expectedMatchCount`);
   }
 
   return {
@@ -146,20 +150,20 @@ export function resolveStatePresenceObservation(
     stateLabel: optionalString(state.label),
     surfaceId: surface["@id"],
     surfaceLabel: optionalString(surface.label),
-    expectedCount: [...expectedCounts][0],
+    expectedMatchCount,
     bindings
   };
 }
 
-export function resolveStatePresenceTarget(
+export function resolveStateObservationTarget(
   document: UjgDocument,
   stateId: string
-): ResolvedStatePresenceTarget {
-  const observation = resolveStatePresenceObservation(document, stateId);
+): ResolvedStateObservationTarget {
+  const observation = resolveStateObservation(document, stateId);
 
   return {
     observation,
-    expectedCount: observation.expectedCount,
+    expectedMatchCount: observation.expectedMatchCount,
     bindings: observation.bindings
   };
 }
@@ -377,12 +381,6 @@ function isEventBinding(index: NodeIndex, binding: UjgNode, expectedEventId: str
   return true;
 }
 
-function expectedCountForEvent(eventId: string): number {
-  if (eventId === presenceObservationEventId) return 1;
-  if (eventId === absenceObservationEventId) return 0;
-  throw new Error(`No state expected count for ObservationEvent ${eventId}`);
-}
-
 function resolveObservationBinding(index: NodeIndex, binding: UjgNode): ResolvedObservationBinding {
   const eventId = requiredString(binding.observationEventRef, `${binding["@id"]}.observationEventRef`);
   const event = requireNode(index, eventId, "ObservationEvent");
@@ -394,6 +392,10 @@ function resolveObservationBinding(index: NodeIndex, binding: UjgNode): Resolved
     surfaceId: requiredString(binding.observeSurfaceRef, `${binding["@id"]}.observeSurfaceRef`),
     eventId,
     eventLabel: optionalString(event.label),
+    expectedMatchCount: optionalExpectedMatchCount(
+      binding.expectedMatchCount,
+      `${binding["@id"]}.expectedMatchCount`
+    ),
     requiredInputModalityProfiles: resolveRequiredInputModalityProfiles(index, event),
     locators: locatorRefs.map((locatorRef) => resolveAccessibleLocator(index, locatorRef)),
     surfaceInstanceResolver: resolveSurfaceInstanceResolver(index, binding.surfaceInstanceResolverRef)
@@ -524,6 +526,15 @@ function optionalStringArray(value: unknown): string[] {
 function requiredString(value: unknown, label: string): string {
   if (typeof value !== "string") {
     throw new Error(`Expected ${label} to be a string`);
+  }
+
+  return value;
+}
+
+function optionalExpectedMatchCount(value: unknown, label: string): number | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new Error(`Expected ${label} to be a non-negative integer`);
   }
 
   return value;

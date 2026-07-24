@@ -2,9 +2,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
-  resolveStatePresenceTarget,
+  resolveStateObservationTarget,
   resolveTransitionActivationTarget,
-  type ResolvedStatePresenceTarget,
+  type ResolvedStateObservationTarget,
   type ResolvedTransitionActivationTarget
 } from "./ujg-resolver.js";
 
@@ -31,7 +31,7 @@ type HappyPathPlanItemBase = {
   entryBindingValue?: string;
 };
 export type HappyPathPlanItem =
-  | (HappyPathPlanItemBase & { kind: "state"; target: ResolvedStatePresenceTarget; id: string })
+  | (HappyPathPlanItemBase & { kind: "state"; target: ResolvedStateObservationTarget; id: string })
   | (HappyPathPlanItemBase & {
       kind: "transition";
       target: ResolvedTransitionActivationTarget;
@@ -224,7 +224,7 @@ export const compileHappyPathPlan = (document: UjgDocument): HappyPathPlan => {
       return binding.observationEventRef
     }
     const toItem = (meta: HappyPathPlanItemBase) => (node: AnyNode): HappyPathPlanItem => {
-      if (node.kind === "state") return {...meta, kind: "state", id:  node["@id"], target: resolveStatePresenceTarget(document, node["@id"])}
+      if (node.kind === "state") return {...meta, kind: "state", id:  node["@id"], target: resolveStateObservationTarget(document, node["@id"])}
       if (node.kind === "activation") return {...meta, kind: "transition", id:  node["@id"], target: resolveTransitionActivationTarget(document, node["@id"], eventIdForTransition(node["@id"]))}
       return {...meta, kind: "control-flow", transitionId: node["@id"]}
     }

@@ -648,8 +648,18 @@
     },
     {
       "@type": "InputModality",
-      "@id": "urn:input-modality:keyboard",
-      "label": "Keyboard"
+      "@id": "urn:input-modality:keyboard-text-entry",
+      "label": "Keyboard text entry"
+    },
+    {
+      "@type": "InputModality",
+      "@id": "urn:input-modality:keyboard-space",
+      "label": "Keyboard Space activation"
+    },
+    {
+      "@type": "InputModality",
+      "@id": "urn:input-modality:keyboard-enter",
+      "label": "Keyboard Enter activation"
     },
     {
       "@type": "InputModality",
@@ -661,7 +671,7 @@
       "@id": "urn:input-modality-profile:keyboard-text-entry",
       "label": "Keyboard text entry",
       "inputModalityRefs": [
-        "urn:input-modality:keyboard"
+        "urn:input-modality:keyboard-text-entry"
       ]
     },
     {
@@ -669,7 +679,7 @@
       "@id": "urn:input-modality-profile:keyboard-space",
       "label": "Keyboard Space activation",
       "inputModalityRefs": [
-        "urn:input-modality:keyboard"
+        "urn:input-modality:keyboard-space"
       ]
     },
     {
@@ -677,7 +687,7 @@
       "@id": "urn:input-modality-profile:keyboard-enter",
       "label": "Keyboard Enter activation",
       "inputModalityRefs": [
-        "urn:input-modality:keyboard"
+        "urn:input-modality:keyboard-enter"
       ]
     },
     {
@@ -739,6 +749,7 @@
       "label": "Observe Alice files ready",
       "observeSurfaceRef": "urn:surface:alice-files-ready",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:alice-file-row"
       ]
@@ -749,6 +760,7 @@
       "label": "Observe Alice share panel open",
       "observeSurfaceRef": "urn:surface:alice-share-panel-open",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:sharing-panel"
       ]
@@ -759,6 +771,7 @@
       "label": "Observe Alice remote recipient entered",
       "observeSurfaceRef": "urn:surface:alice-remote-recipient-entered",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:remote-recipient-entry"
       ]
@@ -769,6 +782,7 @@
       "label": "Observe Alice share permissions open",
       "observeSurfaceRef": "urn:surface:alice-share-permissions-open",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:save-share-button"
       ]
@@ -779,6 +793,7 @@
       "label": "Observe Alice share confirmed",
       "observeSurfaceRef": "urn:surface:alice-share-confirmed",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:alice-share-row"
       ],
@@ -790,6 +805,7 @@
       "label": "Observe Bob incoming share",
       "observeSurfaceRef": "urn:surface:bob-incoming-share-visible",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:incoming-share-row"
       ]
@@ -800,6 +816,7 @@
       "label": "Observe Bob pending share removed",
       "observeSurfaceRef": "urn:surface:bob-pending-share-offer-cleared",
       "observationEventRef": "urn:observation-event:absence",
+      "expectedMatchCount": 0,
       "locatorRefs": [
         "urn:locator:incoming-share-row"
       ]
@@ -810,6 +827,7 @@
       "label": "Observe Bob shared report row",
       "observeSurfaceRef": "urn:surface:bob-shared-report-visible",
       "observationEventRef": "urn:observation-event:presence",
+      "expectedMatchCount": 1,
       "locatorRefs": [
         "urn:locator:bob-shared-report-file-row",
         "urn:locator:bob-shared-report-status-row"

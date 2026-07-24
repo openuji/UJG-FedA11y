@@ -20,13 +20,12 @@ const featureAdapters: FeatureAdapter[] = [
 ];
 const roleOptionFeatureNames = new Set(["expanded"]);
 
-const keyboardInputModalityId = "urn:input-modality:keyboard";
+const keyboardTextEntryInputModalityId = "urn:input-modality:keyboard-text-entry";
+const keyboardSpaceInputModalityId = "urn:input-modality:keyboard-space";
+const keyboardEnterInputModalityId = "urn:input-modality:keyboard-enter";
 const pointerInputModalityId = "urn:input-modality:pointer";
-const keyboardTextEntryInputModalityProfileId =
-  "urn:input-modality-profile:keyboard-text-entry";
-const keyboardSpaceInputModalityProfileId = "urn:input-modality-profile:keyboard-space";
-const keyboardEnterInputModalityProfileId = "urn:input-modality-profile:keyboard-enter";
-const pointerInputModalityProfileId = "urn:input-modality-profile:pointer";
+
+export type PlaywrightActivationMode = "keyboard-only" | "standard";
 
 export type PlaywrightTransitionCommandId =
   | "pointer-click"
@@ -41,8 +40,31 @@ export type PlaywrightTransitionCommand = {
 };
 
 export type PlaywrightTransitionValues = {
-  federatedRecipient?: string;
+  text?: string;
 };
+
+export function selectTransitionActivationProfile(
+  activation: ResolvedTransitionActivation,
+  mode: PlaywrightActivationMode
+): ResolvedInputModalityProfile {
+  const profile =
+    mode === "keyboard-only"
+      ? profileWithAnyModality(activation, [
+          keyboardTextEntryInputModalityId,
+          keyboardEnterInputModalityId,
+          keyboardSpaceInputModalityId
+        ])
+      : profileWithAnyModality(activation, [
+          keyboardTextEntryInputModalityId,
+          pointerInputModalityId
+        ]);
+
+  if (!profile) {
+    throw new Error(`No ${mode} activation profile for ${activation.transitionId}`);
+  }
+
+  return profile;
+}
 
 export function toPlaywrightLocator(root: LocatorRoot, locator: ResolvedAccessibleLocator): Locator {
   const scopedRoot = locator.contexts.reduce(
@@ -74,26 +96,26 @@ export function resolveTransitionActivationCommand(
 ): PlaywrightTransitionCommand {
   const modality = requireSingleInputModality(activation, profile);
 
-  switch (`${profile.id} ${modality.id}`) {
-    case `${pointerInputModalityProfileId} ${pointerInputModalityId}`:
+  switch (modality.id) {
+    case pointerInputModalityId:
       return {
         id: "pointer-click",
         eventId: activation.eventId,
         inputModalityProfile: profile
       };
-    case `${keyboardSpaceInputModalityProfileId} ${keyboardInputModalityId}`:
+    case keyboardSpaceInputModalityId:
       return {
         id: "keyboard-space",
         eventId: activation.eventId,
         inputModalityProfile: profile
       };
-    case `${keyboardEnterInputModalityProfileId} ${keyboardInputModalityId}`:
+    case keyboardEnterInputModalityId:
       return {
         id: "keyboard-enter",
         eventId: activation.eventId,
         inputModalityProfile: profile
       };
-    case `${keyboardTextEntryInputModalityProfileId} ${keyboardInputModalityId}`:
+    case keyboardTextEntryInputModalityId:
       return {
         id: "keyboard-text-entry",
         eventId: activation.eventId,
@@ -127,7 +149,7 @@ export async function activateResolvedTransition(
       await locator.press("Enter");
       return;
     case "keyboard-text-entry":
-      await locator.pressSequentially(requiredTransitionValue(values.federatedRecipient, command));
+      await locator.pressSequentially(requiredTransitionValue(values.text, command));
       return;
     default:
       assertNever(command.id);
@@ -181,6 +203,19 @@ function describeInputModalities(profile: ResolvedInputModalityProfile): string 
   return profile.modalities.map((modality) => modality.id).join(", ");
 }
 
+function profileWithAnyModality(
+  activation: ResolvedTransitionActivation,
+  modalityIds: string[]
+): ResolvedInputModalityProfile | undefined {
+  return modalityIds
+    .map((modalityId) =>
+      activation.requiredInputModalityProfiles.find((profile) =>
+        profile.modalities.some((modality) => modality.id === modalityId)
+      )
+    )
+    .find((profile): profile is ResolvedInputModalityProfile => profile !== undefined);
+}
+
 function requireSingleInputModality(
   activation: ResolvedTransitionActivation,
   profile: ResolvedInputModalityProfile
@@ -208,7 +243,7 @@ function requiredTransitionValue(
   command: PlaywrightTransitionCommand
 ): string {
   if (!value) {
-    throw new Error(`Transition command ${command.id} requires a federatedRecipient value`);
+    throw new Error(`Transition command ${command.id} requires a text value`);
   }
 
   return value;
