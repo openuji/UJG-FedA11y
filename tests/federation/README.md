@@ -79,6 +79,7 @@ Use this first for manual review. It includes:
 - separate `page-state` and `matched-surface` scan metrics
 - one item for each UJG plan item
 - item status: `audited`, `skipped`, or `not-applicable`
+- source screenshot link and preview for state items when capture succeeds
 - exact violations and incomplete checks for each audited item
 - links to the detailed per-audit JSON and HTML reports
 - links from each finding node to the anchored node in the detailed HTML report
@@ -108,6 +109,8 @@ Each audited item includes:
 - `auditId`
 - `sourceJsonHref`
 - `sourceHtmlHref`
+- `sourceScreenshotHref`
+- `sourceScreenshotError`
 - `summary`
 - `scanSummaries`
 - `findings.violations`

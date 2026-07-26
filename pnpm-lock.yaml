@@ -55,6 +55,12 @@ importers:
         specifier: ^4.111.0
         version: 4.111.0
 
+  packages/playwright-artifacts:
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.61.1
+        version: 1.61.1
+
   packages/playwright-axe-audit:
     dependencies:
       '@axe-core/playwright':
@@ -70,6 +76,9 @@ importers:
       '@playwright/test':
         specifier: ^1.61.1
         version: 1.61.1
+      '@ujg-fed-a11y/playwright-artifacts':
+        specifier: workspace:*
+        version: link:../../packages/playwright-artifacts
       '@ujg-fed-a11y/playwright-axe-audit':
         specifier: workspace:*
         version: link:../../packages/playwright-axe-audit

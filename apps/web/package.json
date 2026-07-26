@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build:accessibility": "node scripts/build-accessibility-document.mjs",
+    "build": "pnpm run build:accessibility && astro build",
     "deploy": "pnpm run build && wrangler deploy",
     "preview": "astro preview",
     "astro": "astro"

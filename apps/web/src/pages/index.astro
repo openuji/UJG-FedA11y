@@ -5,6 +5,8 @@ import 'lucode-starlight/styles/base';
 
 import ThemeProvider from '@astrojs/starlight/components/ThemeProvider.astro';
 import Header from 'virtual:starlight/components/Header';
+import filesharingAccessibility from '../assets/accessibility/filesharing-accessibility.json';
+import JourneyAccessibilityIntro from '../components/JourneyAccessibilityIntro.astro';
 import JourneyPathIsland from '../components/JourneyPathIsland';
 
 (Astro.locals as any).starlightRoute = {
@@ -49,20 +51,14 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
       </header>
 
       <main>
-        <section class="intro">
-          <p class="eyebrow">UJG-FedA11y</p>
-          <h1>Federated accessibility journeys</h1>
-          <p>
-            A local rendering of the federated file sharing journey path from the User Journey Graph model.
-          </p>
-        </section>
+        <JourneyAccessibilityIntro accessibilityDocument={filesharingAccessibility} />
 
         <section class="journey-panel" aria-labelledby="journey-path-title">
           <div class="journey-panel__header">
             <p class="eyebrow">Journey path</p>
             <h2 id="journey-path-title">Federated file sharing</h2>
           </div>
-          <JourneyPathIsland client:load />
+          <JourneyPathIsland accessibilityDocument={filesharingAccessibility} client:load />
         </section>
       </main>
     </div>
@@ -155,29 +151,10 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     margin-inline: auto;
   }
 
-  .intro {
-    max-width: 48rem;
-    margin-bottom: calc(var(--spacing) * 10);
-  }
-
-  .intro h1,
   .journey-panel h2 {
     margin: 0;
     color: var(--foreground);
     line-height: 1.1;
-  }
-
-  .intro h1 {
-    max-width: 14ch;
-    font-size: clamp(2.25rem, 7vw, 5rem);
-    letter-spacing: 0;
-  }
-
-  .intro p:not(.eyebrow) {
-    max-width: 42rem;
-    color: var(--muted-foreground);
-    font-size: 1.125rem;
-    line-height: 1.7;
   }
 
   .eyebrow {
@@ -195,8 +172,6 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     min-width: 0;
     max-width: 100%;
     overflow-x: auto;
-    border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
-    border-radius: var(--radius);
     padding: calc(var(--spacing) * 6);
     background: color-mix(in oklab, var(--background) 88%, var(--card));
   }

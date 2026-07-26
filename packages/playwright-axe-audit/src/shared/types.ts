@@ -135,6 +135,8 @@ export type AxePathAuditItem = {
   wcagTags?: string[];
   sourceJsonHref?: string;
   sourceHtmlHref?: string;
+  sourceScreenshotHref?: string;
+  sourceScreenshotError?: string;
   summary?: AxeAuditSummary;
   scanSummaries?: AxePathAuditScanSummaries;
   findings?: AxePathAuditFindings;
@@ -167,6 +169,8 @@ export type AxePathAuditAuditedItemInput = {
   groupLabel?: string;
   metadata?: AxeAuditMetadata;
   report: AxeAuditReport;
+  sourceScreenshotHref?: string;
+  sourceScreenshotError?: string;
 };
 
 export type AxePathAuditUnauditedItemInput = {
@@ -176,6 +180,8 @@ export type AxePathAuditUnauditedItemInput = {
   metadata?: AxeAuditMetadata;
   status: "skipped" | "not-applicable";
   reason: string;
+  sourceScreenshotHref?: string;
+  sourceScreenshotError?: string;
 };
 
 export type AxePathAuditItemInput =

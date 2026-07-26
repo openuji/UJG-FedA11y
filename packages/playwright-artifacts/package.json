@@ -1,0 +1,21 @@
+{
+  "name": "@ujg-fed-a11y/playwright-artifacts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}

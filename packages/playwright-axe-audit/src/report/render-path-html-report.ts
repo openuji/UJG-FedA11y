@@ -37,6 +37,7 @@ export function renderAxePathAuditHtml(
     "th{background:#f6f8fa}",
     "code,pre{background:#f6f8fa;border-radius:4px}",
     "pre{padding:.75rem;overflow:auto}",
+    "img{display:block;max-width:min(100%,960px);height:auto;border:1px solid #d8dee4}",
     ".group{border-top:2px solid #d8dee4;padding-top:1rem}",
     ".item{border:1px solid #d8dee4;border-radius:6px;padding:.75rem 1rem;margin-block:1rem}",
     ".item.skipped{border-color:#bf8700;background:#fff8c5}",
@@ -121,6 +122,7 @@ function renderItem(item: AxePathAuditItem): string {
     `<details class="item ${escapeAttribute(item.status)}" id="${escapeAttribute(item.itemId)}">`,
     `<summary class="item-summary">${renderItemSummary(title, item)}</summary>`,
     renderItemTable(item),
+    renderSourceScreenshot(item),
     item.findings ? renderFindings(item) : "",
     "</details>"
   ].join("\n");
@@ -157,6 +159,25 @@ function renderItemTable(item: AxePathAuditItem): string {
     item.scanSummaries ? rawRow("Scan metrics", renderScanSummaryTable(item.scanSummaries)) : "",
     row("Metadata", JSON.stringify(item.metadata, null, 2)),
     "</table>"
+  ].join("\n");
+}
+
+function renderSourceScreenshot(item: AxePathAuditItem): string {
+  if (!item.sourceScreenshotHref && !item.sourceScreenshotError) return "";
+
+  const screenshot = item.sourceScreenshotHref
+    ? [
+      `<p><a href="${escapeAttribute(item.sourceScreenshotHref)}">${escapeHtml(item.sourceScreenshotHref)}</a></p>`,
+      `<img src="${escapeAttribute(item.sourceScreenshotHref)}" alt="Source screenshot for ${escapeAttribute(item.auditId ?? item.itemId)}">`
+    ].join("\n")
+    : "";
+
+  return [
+    '<section class="source-screenshot">',
+    "<h4>Source Screenshot</h4>",
+    screenshot,
+    item.sourceScreenshotError ? `<p>Screenshot error: ${escapeHtml(item.sourceScreenshotError)}</p>` : "",
+    "</section>"
   ].join("\n");
 }
 

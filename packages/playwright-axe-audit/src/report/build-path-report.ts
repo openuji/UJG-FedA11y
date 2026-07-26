@@ -57,6 +57,8 @@ function buildItem(input: AxePathAuditItemInput): AxePathAuditItem {
       wcagTags: report.wcagTags,
       sourceJsonHref: auditJsonFileName(report.auditId),
       sourceHtmlHref: auditHtmlFileName(report.auditId),
+      sourceScreenshotHref: input.sourceScreenshotHref,
+      sourceScreenshotError: input.sourceScreenshotError,
       summary: report.summary,
       scanSummaries: buildScanSummaries(report),
       findings: buildFindings(report)
@@ -69,7 +71,9 @@ function buildItem(input: AxePathAuditItemInput): AxePathAuditItem {
     groupLabel: input.groupLabel,
     status: input.status,
     reason: input.reason,
-    metadata: input.metadata ?? {}
+    metadata: input.metadata ?? {},
+    sourceScreenshotHref: input.sourceScreenshotHref,
+    sourceScreenshotError: input.sourceScreenshotError
   };
 }
 

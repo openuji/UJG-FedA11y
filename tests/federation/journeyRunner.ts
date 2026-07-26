@@ -7,6 +7,10 @@ import {
   type TestInfo
 } from "@playwright/test";
 import {
+  capturePlaywrightScreenshotArtifact,
+  type PlaywrightScreenshotArtifact
+} from "@ujg-fed-a11y/playwright-artifacts";
+import {
   attachAxePathAuditReport,
   axeFailureMessage,
   buildAxePathAuditReport,
@@ -51,6 +55,11 @@ export type HappyPathAuditConfig = {
   metadata?: AxeAuditMetadata;
   strict?: boolean;
   evidenceTimeoutMs?: number;
+  sourceScreenshots?: {
+    states?: boolean;
+    fullPage?: boolean;
+    timeoutMs?: number;
+  };
 };
 
 const stateAssertionTimeout = 30_000;
@@ -125,7 +134,21 @@ export const runHappyPathPlan = async ({
           await expect(locator).toBeVisible({ timeout: stateAssertionTimeout });
         }
         if (audit && axeJourneyItem) {
+          const screenshots = await captureStateSourceScreenshots({
+            audit,
+            journeyItem: axeJourneyItem,
+            page,
+            testInfo
+          });
+
           if (item.target.expectedMatchCount === 1) {
+            auditItems[itemIndex] = unauditedAxePathItem(
+              axeJourneyItem,
+              "skipped",
+              "State source screenshot captured, but the axe audit did not complete.",
+              screenshots
+            );
+
             const report = await auditResolvedLocator({
               audit,
               journeyItem: axeJourneyItem,
@@ -135,7 +158,14 @@ export const runHappyPathPlan = async ({
               testInfo
             });
 
-            auditItems[itemIndex] = auditedAxePathItem(axeJourneyItem, report);
+            auditItems[itemIndex] = auditedAxePathItem(axeJourneyItem, report, screenshots);
+          } else {
+            auditItems[itemIndex] = unauditedAxePathItem(
+              axeJourneyItem,
+              "skipped",
+              `Expected match count ${item.target.expectedMatchCount} cannot be scoped to one matched locator.`,
+              screenshots
+            );
           }
         }
         continue;
@@ -198,6 +228,32 @@ export const runHappyPathPlan = async ({
     throw strictFailure;
   }
 };
+
+async function captureStateSourceScreenshots({
+  audit,
+  journeyItem,
+  page,
+  testInfo
+}: {
+  audit: HappyPathAuditConfig;
+  journeyItem: AxeJourneyPlanItem;
+  page: Page;
+  testInfo: TestInfo;
+}): Promise<PlaywrightScreenshotArtifact[] | undefined> {
+  if (!audit.sourceScreenshots?.states) return undefined;
+
+  return [
+    await capturePlaywrightScreenshotArtifact({
+      page,
+      testInfo,
+      id: "source",
+      fileBaseName: journeyItem.auditId,
+      scope: "page",
+      fullPage: audit.sourceScreenshots.fullPage ?? true,
+      timeoutMs: audit.sourceScreenshots.timeoutMs
+    })
+  ];
+}
 
 function initialAxePathItem(
   journeyItem: AxeJourneyPlanItem | undefined,

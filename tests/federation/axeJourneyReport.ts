@@ -3,9 +3,15 @@ import {
   type AxeAuditReport,
   type AxePathAuditItemInput
 } from "@ujg-fed-a11y/playwright-axe-audit";
+import { type PlaywrightScreenshotArtifact } from "@ujg-fed-a11y/playwright-artifacts";
 
 import { type ResolvedObservationBinding } from "./ujg-resolver.js";
 import { type HappyPathPlanItem } from "./ujg-resolver-2.js";
+
+type AxePathSourceScreenshotFields = {
+  sourceScreenshotHref?: string;
+  sourceScreenshotError?: string;
+};
 
 export type AxeJourneyPlanItem = {
   auditId: string;
@@ -34,21 +40,24 @@ export function createAxeJourneyPlanItem(
 
 export function auditedAxePathItem(
   journeyItem: AxeJourneyPlanItem,
-  report: AxeAuditReport
+  report: AxeAuditReport,
+  screenshots?: readonly PlaywrightScreenshotArtifact[]
 ): AxePathAuditItemInput {
   return {
     itemId: journeyItem.itemId,
     groupId: journeyItem.groupId,
     groupLabel: journeyItem.groupLabel,
     metadata: journeyItem.metadata,
-    report
+    report,
+    ...mapSourceScreenshotArtifactToAxePathFields(screenshots)
   };
 }
 
 export function unauditedAxePathItem(
   journeyItem: AxeJourneyPlanItem,
   status: "skipped" | "not-applicable",
-  reason: string
+  reason: string,
+  screenshots?: readonly PlaywrightScreenshotArtifact[]
 ): AxePathAuditItemInput {
   return {
     itemId: journeyItem.itemId,
@@ -56,7 +65,19 @@ export function unauditedAxePathItem(
     groupLabel: journeyItem.groupLabel,
     metadata: journeyItem.metadata,
     status,
-    reason
+    reason,
+    ...mapSourceScreenshotArtifactToAxePathFields(screenshots)
+  };
+}
+
+function mapSourceScreenshotArtifactToAxePathFields(
+  screenshots: readonly PlaywrightScreenshotArtifact[] | undefined
+): AxePathSourceScreenshotFields {
+  const sourceScreenshot = screenshots?.find((screenshot) => screenshot.id === "source");
+
+  return {
+    sourceScreenshotHref: sourceScreenshot?.href,
+    sourceScreenshotError: sourceScreenshot?.error
   };
 }
 

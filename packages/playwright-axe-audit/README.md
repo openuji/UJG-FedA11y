@@ -108,7 +108,7 @@ Path aggregate helpers:
 - `renderAxePathAuditHtml(report)`: renders a human-readable HTML report.
 - `attachAxePathAuditReport(testInfo, report)`: writes and attaches aggregate JSON/HTML to Playwright output.
 
-The aggregate JSON includes combined summaries, `scanSummaries` split by `page-state` and `matched-surface`, item metadata, exact `violations` and `incomplete` findings, node targets, failure summaries, evidence, `screenshotHref`, and `htmlHref`. It intentionally does not copy raw `node.html`; `htmlHref` points to the anchored node in the detailed per-audit HTML report.
+The aggregate JSON includes combined summaries, `scanSummaries` split by `page-state` and `matched-surface`, optional generic source screenshot links, item metadata, exact `violations` and `incomplete` findings, node targets, failure summaries, evidence, `screenshotHref`, and `htmlHref`. It intentionally does not copy raw `node.html`; `htmlHref` points to the anchored node in the detailed per-audit HTML report.
 
 ## Scan Logic
 
@@ -302,6 +302,16 @@ scanSummaries: {
   "matched-surface": AxeAuditSummary;
 }
 ```
+
+Path aggregate items can also include provider-agnostic source screenshot fields:
+
+```ts
+sourceScreenshotHref?: string;
+sourceScreenshotError?: string;
+```
+
+These are report references only. This package does not capture screenshots or depend on a
+specific screenshot provider.
 
 ## Federation Test Usage
 

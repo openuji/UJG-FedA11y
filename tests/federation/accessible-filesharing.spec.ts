@@ -49,6 +49,10 @@ modes.forEach((mode) => {
         metadata: {
           documentId: document["@id"],
           testMode: mode
+        },
+        sourceScreenshots: {
+          states: true,
+          fullPage: true
         }
       }
     });

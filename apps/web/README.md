@@ -1,73 +1,85 @@
-# Starlight Starter Kit: Basics
+# UJG-FedA11y Web App
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Astro/Starlight app for rendering the federated file sharing journey.
 
-```
-npm create astro@latest -- --template starlight
-```
+## Accessibility Data Document
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The production build generates an accessibility document before Astro builds:
 
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
-
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```sh
+pnpm --filter web build
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+The generator reads one Playwright test-result entry folder from:
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
-
-Static assets, like favicons, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
-
-
-## Development
-
-When starting the dev server, use background mode:
-
-```
-astro dev --background
+```text
+tests/federation/test-results/
 ```
 
-Manage the background server with `astro dev stop`, `astro dev status`, and `astro dev logs`.
+Set `UJG_A11Y_TEST_RESULT_DIR` to choose a specific entry. The value may be an absolute path or a folder name under `tests/federation/test-results`.
 
-## Documentation
+```sh
+UJG_A11Y_TEST_RESULT_DIR=accessible-filesharing-fed-804ab-path-is-standard-accessible-chromium pnpm --filter web build
+```
 
-Full documentation: https://docs.astro.build
+If `UJG_A11Y_TEST_RESULT_DIR` is unset, the latest valid entry folder is selected by directory modified time.
 
-Consult these guides before working on related tasks:
+Generated frontend data:
 
-- [Adding pages, dynamic routes, or middleware](https://docs.astro.build/en/guides/routing/)
-- [Working with Astro components](https://docs.astro.build/en/basics/astro-components/)
-- [Using React, Vue, Svelte, or other framework components](https://docs.astro.build/en/guides/framework-components/)
-- [Adding or managing content](https://docs.astro.build/en/guides/content-collections/)
-- [Adding styles or using Tailwind](https://docs.astro.build/en/guides/styling/)
-- [Supporting multiple languages](https://docs.astro.build/en/guides/internationalization/)
+```text
+src/assets/accessibility/filesharing-accessibility.json
+```
+
+Astro imports this JSON at build time and serializes it into the hydrated `JourneyPathIsland` props. There is no runtime JSON fetch.
+
+Generated runtime artifacts:
+
+```text
+public/accessibility/filesharing/artifacts/
+```
+
+Only non-JSON evidence artifacts are copied there, currently the aggregate HTML report and state screenshots.
+
+The JSON schema is:
+
+```text
+ujg-fed-a11y.accessibility-summary-by-graph-id.v1
+```
+
+It is grouped by UJG graph ids:
+
+```text
+states[<stateId>]
+transitions[<transitionId>]
+```
+
+Each grouped item is intentionally compact. It contains only graph identity, the test item/audit id, audit status, summary counts, page/surface metric counts, a detailed HTML report anchor, and a state screenshot link when one exists:
+
+```json
+{
+  "id": "urn:state:alice-files-ready",
+  "itemId": "standard-000-alice-files-ready",
+  "auditId": "standard-000-alice-files-ready",
+  "status": "audited",
+  "summary": { "violations": 3, "incomplete": 3, "passes": 42, "inapplicable": 82 },
+  "metrics": {
+    "pageState": { "violations": 3, "incomplete": 3, "passes": 30, "inapplicable": 32 },
+    "matchedSurface": { "violations": 0, "incomplete": 0, "passes": 12, "inapplicable": 50 }
+  },
+  "sourceHtmlHref": "/accessibility/filesharing/artifacts/federated-sharing-standard.axe-path.html#standard-000-alice-files-ready",
+  "sourceScreenshotHref": "/accessibility/filesharing/artifacts/standard-000-alice-files-ready.source.playwright-screenshot.png"
+}
+```
+
+Full axe findings, node evidence, and source JSON stay in `tests/federation/test-results/`. They are not embedded into the frontend hydration payload.
+
+Rendering is intentionally left to `@openuji/journey-path`.
+
+## Commands
+
+```sh
+pnpm --filter web dev
+pnpm --filter web build:accessibility
+pnpm --filter web build
+pnpm --filter web preview
+```
