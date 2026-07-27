@@ -38,8 +38,8 @@ const rows = [
 ---
 
 <section class="accessibility-intro" aria-labelledby="accessibility-intro-title">
-	<div class="accessibility-intro__header">
-		<h1 id="accessibility-intro-title">Federation accessibility test</h1>
+	<div class="accessibility-intro__header header">
+		<h3>Summary</h3>
 
 		<div class="accessibility-intro__chips" aria-label="Accessibility test coverage">
 			<span class="accessibility-intro__chip accessibility-intro__chip--standards">
@@ -49,14 +49,14 @@ const rows = [
 				</svg>
 				<span>WCAG 2.0 A/AA · 2.1 A/AA · 2.2 AA</span>
 			</span>
-			<span class="accessibility-intro__chip accessibility-intro__chip--keyboard">
+			<span class="accessibility-intro__chip accessibility-intro__chip--blue">
 				<svg aria-hidden="true" viewBox="0 0 24 24">
 					<rect x="3" y="6" width="18" height="12" rx="2" />
 					<path d="M7 10h.01M11 10h.01M15 10h.01M19 10h.01M7 14h.01M11 14h6" />
 				</svg>
 				<span>Case 1: Keyboard-only</span>
 			</span>
-			<span class="accessibility-intro__chip accessibility-intro__chip--default">
+			<span class="accessibility-intro__chip accessibility-intro__chip--blue">
 				<svg aria-hidden="true" viewBox="0 0 24 24">
 					<path d="m5 3 13 9-6 1.5 4 6-3 1.7-4-6-4 5V3Z" />
 				</svg>
@@ -119,7 +119,7 @@ const rows = [
 
 	<section class="scan-metrics" aria-labelledby="scan-metrics-title">
 		<div class="scan-metrics__header">
-			<h2 id="scan-metrics-title">Scan metrics</h2>
+			<h4 id="scan-metrics-title">Scan metrics</h4>
 			<a
 				class:list={['scan-metrics__report-link', !reportHref && 'scan-metrics__report-link--hidden']}
 				href={reportHref}
@@ -160,7 +160,7 @@ const rows = [
 	.accessibility-intro {
 		display: grid;
 		gap: calc(var(--spacing) * 5);
-		width: min(100%, 800px);
+		
 		margin-bottom: calc(var(--spacing) * 8);
 		color: var(--foreground);
 		margin-inline: auto;
@@ -179,6 +179,7 @@ const rows = [
 		letter-spacing: 0;
 		line-height: 1.12;
 	}
+
 
 	.accessibility-intro__chips {
 		display: flex;
@@ -210,19 +211,16 @@ const rows = [
 	}
 
 	.accessibility-intro__chip--standards {
-		border-color: color-mix(in oklab, var(--green) 44%, var(--border));
+		
 		background: color-mix(in oklab, var(--green-low) 28%, transparent);
 	}
 
-	.accessibility-intro__chip--keyboard {
-		border-color: color-mix(in oklab, var(--blue) 44%, var(--border));
+	.accessibility-intro__chip--blue {
+		
 		background: color-mix(in oklab, var(--blue-low) 28%, transparent);
 	}
 
-	.accessibility-intro__chip--default {
-		border-color: color-mix(in oklab, var(--orange) 44%, var(--border));
-		background: color-mix(in oklab, var(--orange-low) 24%, transparent);
-	}
+	
 
 	.accessibility-intro svg {
 		flex: 0 0 auto;
@@ -259,12 +257,12 @@ const rows = [
 	}
 
 	.federation-diagram {
+		width: min(100%, 600px);
 		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		min-height: 9rem;
-		width: 100%;
 		margin-inline: auto;
 		gap: clamp(1rem, 4vw, 2rem);
 	}
@@ -357,12 +355,15 @@ const rows = [
 		border-radius: var(--radius);
 		padding: calc(var(--spacing) * 4);
 		background: color-mix(in oklab, var(--background) 88%, var(--card));
+		width: min(100%, 800px); 
+		margin-inline: auto;
+
 	}
 
-	.scan-metrics h2 {
+	.scan-metrics h4 {
 		margin: 0;
 		color: var(--foreground);
-		font-size: 1.25rem;
+		
 		line-height: 1.2;
 	}
 

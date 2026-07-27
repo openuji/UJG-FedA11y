@@ -2,7 +2,7 @@
 import 'lucode-starlight/styles/layers';
 import 'lucode-starlight/styles/theme';
 import 'lucode-starlight/styles/base';
-
+import './index.css'
 import ThemeProvider from '@astrojs/starlight/components/ThemeProvider.astro';
 import Header from 'virtual:starlight/components/Header';
 import filesharingAccessibility from '../assets/accessibility/filesharing-accessibility.json';
@@ -51,15 +51,19 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
       </header>
 
       <main>
+
+        <article class="demo-article" >
         <JourneyAccessibilityIntro accessibilityDocument={filesharingAccessibility} />
 
         <section class="journey-panel" aria-labelledby="journey-path-title">
-          <div class="journey-panel__header">
-            <p class="eyebrow">Journey path</p>
-            <h2 id="journey-path-title">Federated file sharing</h2>
+          <div class="journey-panel__header header">
+            
+            <h3 id="journey-path-title">User Journey Graph</h3>
           </div>
           <JourneyPathIsland accessibilityDocument={filesharingAccessibility} client:load />
         </section>
+        
+        </article>
       </main>
     </div>
   </body>
@@ -166,16 +170,20 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     text-transform: uppercase;
   }
 
+  article {
+    max-width: 1120px;
+    margin-inline: auto;
+    padding: calc(var(--spacing) * 6);
+  }
+
   .journey-panel {
     display: grid;
     gap: calc(var(--spacing) * 6);
     min-width: 0;
-    max-width: 100%;
+    
     overflow-x: auto;
-    padding: calc(var(--spacing) * 6);
     background: color-mix(in oklab, var(--background) 88%, var(--card));
-    max-width: 1200px;
-    margin-inline: auto;
+    
   }
 
   .journey-panel__header {
@@ -185,6 +193,10 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
 
   .journey-panel h2 {
     font-size: 1.25rem;
+  }
+
+  .demo-article {
+    
   }
 
   :global(.journey-path-island) {

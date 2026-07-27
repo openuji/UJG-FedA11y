@@ -1,0 +1,6 @@
+
+
+section .header {
+    width: min(800px, 100%);
+    margin-inline: auto;
+}
