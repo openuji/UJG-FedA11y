@@ -1,0 +1,28 @@
+ujgTarget: ed-2026-07-19
+touchpoints:
+  "urn:touchpoint:nextcloud-a":
+    label: "Nextcloud A"
+    compositeStateRefs:
+      - "urn:composite:alice-federated-sharing"
+  "urn:touchpoint:nextcloud-b":
+    label: "Nextcloud B"
+    compositeStateRefs:
+      - "urn:composite:bob-remote-share"
+
+users:
+  "urn:user:alice":
+    label: "Alice"
+    touchpointRefs:
+      - "urn:touchpoint:nextcloud-a"
+  "urn:user:bob":
+    label: "Bob"
+    touchpointRefs:
+      - "urn:touchpoint:nextcloud-b"
+
+artifacts:
+  "urn:artifact:federated-share":
+    label: "Federated share for the test file"
+    nameRef: "urn:message:report-pdf-file-name"
+    sourceTouchpointRef: "urn:touchpoint:nextcloud-a"
+    targetTouchpointRefs:
+      - "urn:touchpoint:nextcloud-b"

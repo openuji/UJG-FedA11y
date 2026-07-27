@@ -8,6 +8,7 @@ type ScanSummary = {
 
 type AccessibilitySummaryDocument = {
 	source?: {
+		aggregateHtmlHref?: string;
 		summary?: {
 			scanSummaries?: {
 				'page-state'?: ScanSummary;
@@ -23,6 +24,7 @@ type Props = {
 
 const { accessibilityDocument } = Astro.props;
 const scanSummaries = accessibilityDocument.source?.summary?.scanSummaries ?? {};
+const reportHref = accessibilityDocument.source?.aggregateHtmlHref;
 
 function metric(summary: ScanSummary | undefined, key: keyof ScanSummary): number {
 	const value = summary?.[key];
@@ -116,7 +118,17 @@ const rows = [
 	</div>
 
 	<section class="scan-metrics" aria-labelledby="scan-metrics-title">
-		<h2 id="scan-metrics-title">Scan metrics</h2>
+		<div class="scan-metrics__header">
+			<h2 id="scan-metrics-title">Scan metrics</h2>
+			<a
+				class:list={['scan-metrics__report-link', !reportHref && 'scan-metrics__report-link--hidden']}
+				href={reportHref}
+				aria-hidden={reportHref ? undefined : 'true'}
+				tabindex={reportHref ? undefined : -1}
+			>
+				View full report <span aria-hidden="true">→</span>
+			</a>
+		</div>
 		<div class="scan-metrics__table-wrap">
 			<table>
 				<thead>
@@ -354,6 +366,40 @@ const rows = [
 		line-height: 1.2;
 	}
 
+	.scan-metrics__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--spacing) * 3);
+	}
+
+	.scan-metrics__report-link {
+		display: inline-flex;
+		align-items: center;
+		gap: calc(var(--spacing) * 1);
+		color: var(--blue);
+		font-size: 0.875rem;
+		font-weight: 700;
+		line-height: 1.2;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.scan-metrics__report-link--hidden {
+		display: none;
+	}
+
+	.scan-metrics__report-link:hover {
+		text-decoration: underline;
+		text-underline-offset: 0.18em;
+	}
+
+	.scan-metrics__report-link:focus-visible {
+		outline: 2px solid currentColor;
+		outline-offset: 0.25rem;
+		border-radius: calc(var(--radius) / 2);
+	}
+
 	.scan-metrics__table-wrap {
 		overflow-x: auto;
 		border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
@@ -459,6 +505,12 @@ const rows = [
 		.accessibility-intro__chip {
 			width: 100%;
 			justify-content: flex-start;
+		}
+
+		.scan-metrics__header {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: calc(var(--spacing) * 2);
 		}
 
 		.scan-metrics {
