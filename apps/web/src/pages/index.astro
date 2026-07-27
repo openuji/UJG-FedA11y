@@ -96,6 +96,21 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
           </section>
         </article>
       </main>
+
+      <footer class="site-footer">
+        <div class="site-footer__inner">
+          <div class="site-footer__brand">
+            <p class="site-footer__title">UJG-FedA11y</p>
+            <p>A prototype for testing accessibility across federated services.</p>
+            <a href="https://github.com/openuji/UJG-FedA11y">GitHub</a>
+          </div>
+
+          <div class="site-footer__meta">
+            <p>Built by OpenUJI.</p>
+            <p>This demo provides test evidence. It is not a WCAG conformance statement.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   </body>
 </html>
@@ -176,6 +191,71 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     height: var(--header-height);
     align-items: center;
     max-width: none;
+  }
+
+  .site-footer {
+    width: 100%;
+    border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    background: color-mix(in oklab, var(--background) 94%, var(--card));
+  }
+
+  .site-footer__inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 8);
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin-inline: auto;
+    padding: calc(var(--spacing) * 8) calc(var(--spacing) * 6);
+  }
+
+  .site-footer p {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .site-footer__brand,
+  .site-footer__meta {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+  }
+
+  .site-footer__brand {
+    max-width: 28rem;
+  }
+
+  .site-footer__meta {
+    max-width: 30rem;
+  }
+
+  .site-footer .site-footer__title {
+    color: var(--foreground);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .site-footer a {
+    width: fit-content;
+    color: var(--blue);
+    font-size: 0.9375rem;
+    font-weight: 750;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .site-footer a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 0.25rem;
+    border-radius: calc(var(--radius) / 2);
   }
 
   main {
@@ -447,6 +527,12 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
       padding-inline: 0;
     }
 
+    .site-footer__inner {
+      flex-direction: column;
+      gap: calc(var(--spacing) * 6);
+      padding: calc(var(--spacing) * 7) calc(var(--spacing) * 4);
+    }
+
     .journey-panel__header {
       align-items: flex-start;
       flex-direction: column;
@@ -477,6 +563,7 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     --color-warning-muted: var(--orange-low);
     --color-danger: var(--red);
     --color-danger-muted: var(--red-low);
+    --jp-color-surface-muted: #cccccc0b;
     min-width: max-content;
   }
 </style>
