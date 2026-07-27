@@ -82,13 +82,21 @@ const rows = [
 			</div>
 		</div>
 
-		<div class="federation-diagram__artifact" aria-hidden="true">
+		<svg class="federation-diagram__arrow up" aria-hidden="true" viewBox="0 0 24 24">
+			<path d="M5 12h14M13 6l6 6-6 6" />
+		</svg>
+
+		<div class="federation-diagram__artifact muted-bg" aria-hidden="true">
 			<svg viewBox="0 0 24 24">
 				<path d="M6 3h8l4 4v14H6V3Z" />
 				<path d="M14 3v5h5" />
 				<path d="M9 12h6M9 16h6" />
 			</svg>
 		</div>
+
+		<svg class="federation-diagram__arrow down" aria-hidden="true" viewBox="0 0 24 24">
+			<path d="M5 12h14M13 6l6 6-6 6" />
+		</svg>
 
 		<div class="federation-diagram__side federation-diagram__side--right">
 			<div class="federation-diagram__badge">
@@ -166,6 +174,10 @@ const rows = [
 		gap: calc(var(--spacing) * 2);
 	}
 
+	.muted-bg {
+		background: color-mix(in oklab, var(--card) 86%, var(--background));
+	}
+
 	.accessibility-intro__chip,
 	.federation-diagram__badge {
 		display: inline-flex;
@@ -174,7 +186,6 @@ const rows = [
 		width: fit-content;
 		border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
 		border-radius: var(--radius);
-		background: color-mix(in oklab, var(--card) 86%, var(--background));
 		color: var(--foreground);
 		font-weight: 600;
 		line-height: 1.2;
@@ -237,19 +248,23 @@ const rows = [
 
 	.federation-diagram {
 		position: relative;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 5.5rem minmax(0, 1fr);
+		display: flex;
 		align-items: center;
+		justify-content: center;
 		min-height: 9rem;
+		width: 100%;
+		margin-inline: auto;
+		gap: clamp(1rem, 4vw, 2rem);
 	}
 
 	.federation-diagram__side {
-		display: grid;
-		align-content: center;
-		justify-items: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 		gap: calc(var(--spacing) * 3);
+		flex: 0 1 14rem;
 		min-height: 8.25rem;
-		border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
 		background: color-mix(in oklab, var(--background) 88%, var(--card));
 	}
 
@@ -278,17 +293,33 @@ const rows = [
 		height: 1rem;
 	}
 
+	.federation-diagram__arrow {
+		width: 2rem;
+		height: 2rem;
+		color: var(--foreground);
+
+		&.up {
+			transform: rotate(-45deg);
+		}
+		&.down {
+			transform: rotate(125deg);
+		}
+	}
+
+	.muted-bg {
+				background: color-mix(in srgb, var(--muted) 72%, var(--card));
+
+	}
 	.federation-diagram__artifact {
 		position: relative;
 		z-index: 2;
 		display: grid;
 		place-items: center;
+		flex: 0 0 5.5rem;
 		width: 5.5rem;
 		aspect-ratio: 1;
 		margin-inline: auto;
-		border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
 		border-radius: 999px;
-		background: var(--background);
 		color: var(--foreground);
 	}
 
@@ -386,7 +417,7 @@ const rows = [
 
 	@media (max-width: 900px) {
 		.federation-diagram {
-			grid-template-columns: 1fr;
+			flex-direction: column;
 			gap: calc(var(--spacing) * 3);
 		}
 
@@ -394,7 +425,7 @@ const rows = [
 		.federation-diagram__side--left,
 		.federation-diagram__side--right {
 			min-height: 10rem;
-			border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+			
 			border-radius: var(--radius);
 		}
 
@@ -402,8 +433,20 @@ const rows = [
 			order: 2;
 		}
 
-		.federation-diagram__side--right {
+		.federation-diagram__arrow {
+			transform: rotate(90deg);
+		}
+
+		.federation-diagram__arrow:first-of-type {
+			order: 1;
+		}
+
+		.federation-diagram__arrow:last-of-type {
 			order: 3;
+		}
+
+		.federation-diagram__side--right {
+			order: 4;
 		}
 	}
 
