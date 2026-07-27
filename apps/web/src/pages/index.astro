@@ -2,7 +2,7 @@
 import 'lucode-starlight/styles/layers';
 import 'lucode-starlight/styles/theme';
 import 'lucode-starlight/styles/base';
-import './index.css'
+import './index.css';
 import ThemeProvider from '@astrojs/starlight/components/ThemeProvider.astro';
 import Header from 'virtual:starlight/components/Header';
 import filesharingAccessibility from '../assets/accessibility/filesharing-accessibility.json';
@@ -44,7 +44,7 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
   </head>
   <body>
     <div data-slot="layout">
-      <header>
+      <header class="site-header">
         <div class="container-wrapper px-6">
           <div class="container">
             <Header />
@@ -53,33 +53,47 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
       </header>
 
       <main>
-
-        <article class="demo-article" >
-        <section>
-          <header class="header">
-          <h2>DEMO: Nextcloud filesharing</h2>
-          </header>
-        </section>
-        <JourneyAccessibilityIntro accessibilityDocument={filesharingAccessibility} />
-
-        <section class="journey-panel" aria-labelledby="journey-path-title">
-          <div class="journey-panel__header header">
-            
-            <h3 id="journey-path-title">User Journey Graph</h3>
-            <div class="journey-panel__links" aria-label="User Journey Graph source files">
-              <a class="journey-panel__source-link" href={filesharingJsonldUrl}>
-                <span class="journey-panel__source-mark">JSON</span>
-                <span>ujg.jsonld</span>
-              </a>
-              <a class="journey-panel__source-link" href={filesharingYamlUrl}>
-                <span class="journey-panel__source-mark">YAML</span>
-                <span>ujg.yaml</span>
-              </a>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero__content">
+            <p class="hero__eyebrow">UJG-FedA11y</p>
+            <h1 id="hero-title">UJG-FedA11y</h1>
+            <p class="hero__tagline">Test accessibility across federated services</p>
+            <p class="hero__description">
+              Describe a user journey, run it against real services, and inspect the result of each step.
+            </p>
+            <div class="hero__actions" aria-label="Primary links">
+              <a class="button button--primary" href="#demo">See the demo</a>
+              <a class="button button--secondary" href="https://github.com/openuji/UJG-FedA11y">View on GitHub</a>
             </div>
           </div>
-          <JourneyPathIsland accessibilityDocument={filesharingAccessibility} client:load />
         </section>
-        
+
+        <article id="demo" class="demo-article" aria-labelledby="demo-title">
+          <header class="demo-intro header">
+            <p class="eyebrow">Demo</p>
+            <h2 id="demo-title">Example demo</h2>
+            <h3>Share a file between two Nextcloud servers</h3>
+            <p>Alice shares a file from Nextcloud A. Bob receives it in Nextcloud B.</p>
+          </header>
+
+          <JourneyAccessibilityIntro accessibilityDocument={filesharingAccessibility} />
+
+          <section class="journey-panel" aria-labelledby="journey-path-title">
+            <div class="journey-panel__header header">
+              <h3 id="journey-path-title">User Journey Graph</h3>
+              <div class="journey-panel__links" aria-label="User Journey Graph source files">
+                <a class="journey-panel__source-link" href={filesharingJsonldUrl}>
+                  <span class="journey-panel__source-mark">JSON</span>
+                  <span>ujg.jsonld</span>
+                </a>
+                <a class="journey-panel__source-link" href={filesharingYamlUrl}>
+                  <span class="journey-panel__source-mark">YAML</span>
+                  <span>ujg.yaml</span>
+                </a>
+              </div>
+            </div>
+            <JourneyPathIsland accessibilityDocument={filesharingAccessibility} client:load />
+          </section>
         </article>
       </main>
     </div>
@@ -145,7 +159,7 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     background: var(--background);
   }
 
-  header {
+  .site-header {
     position: sticky;
     top: 0;
     z-index: 50;
@@ -153,11 +167,11 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     background: var(--background);
   }
 
-  header .container-wrapper {
+  .site-header .container-wrapper {
     padding-inline: calc(var(--spacing) * 6);
   }
 
-  header .container {
+  .site-header .container {
     display: flex;
     height: var(--header-height);
     align-items: center;
@@ -166,10 +180,111 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
 
   main {
     flex: 1;
-    padding: calc(var(--spacing) * 10) calc(var(--spacing) * 6);
+    display: grid;
+    gap: clamp(4rem, 9vw, 7rem);
+    padding: clamp(3rem, 7vw, 6rem) calc(var(--spacing) * 6) calc(var(--spacing) * 12);
     width: 100%;
     max-width: var(--container-max-width);
+    min-width: 0;
     margin-inline: auto;
+  }
+
+  .hero {
+    display: grid;
+    align-items: center;
+    min-height: min(38rem, calc(100svh - var(--header-height) - 4rem));
+    min-width: 0;
+    padding-block: clamp(2rem, 6vw, 5rem);
+  }
+
+  .hero__content {
+    max-width: 56rem;
+  }
+
+  .hero__eyebrow {
+    margin: 0 0 calc(var(--spacing) * 4);
+    color: var(--blue);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .hero h1,
+  .demo-intro h2 {
+    margin: 0;
+    color: var(--foreground);
+    font-weight: 850;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .hero h1 {
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+  }
+
+  .hero__tagline {
+    max-width: 48rem;
+    margin: calc(var(--spacing) * 5) 0 0;
+    color: var(--foreground);
+    font-size: clamp(1.45rem, 3vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.12;
+  }
+
+  .hero__description,
+  .demo-intro p {
+    color: var(--muted-foreground);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+
+  .hero__description {
+    max-width: 42rem;
+    margin: calc(var(--spacing) * 4) 0 0;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 3);
+    margin-top: calc(var(--spacing) * 8);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: calc(var(--spacing) * 2) calc(var(--spacing) * 5);
+    border: 1px solid color-mix(in oklab, var(--border) 74%, transparent);
+    border-radius: var(--radius);
+    font-size: 0.9375rem;
+    font-weight: 750;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .button--primary {
+    border-color: color-mix(in oklab, var(--blue) 72%, var(--border));
+    background: var(--blue);
+    color: var(--background);
+  }
+
+  .button--secondary {
+    background: color-mix(in oklab, var(--card) 88%, var(--background));
+    color: var(--foreground);
+  }
+
+  .button:hover {
+    transform: translateY(-1px);
+  }
+
+  .button:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 0.25rem;
   }
 
   .journey-panel h2,
@@ -189,14 +304,50 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
   }
 
   article {
+    width: 100%;
     max-width: 1120px;
+    min-width: 0;
     margin-inline: auto;
-    padding: calc(var(--spacing) * 6);
+    padding: 0 calc(var(--spacing) * 6) calc(var(--spacing) * 6);
+  }
+
+  .demo-article {
+    scroll-margin-top: calc(var(--header-height) + 2rem);
+  }
+
+  .demo-intro {
+    display: grid;
+    gap: calc(var(--spacing) * 3);
+    margin-bottom: calc(var(--spacing) * 8);
+    text-align: left;
+  }
+
+  .demo-intro .eyebrow {
+    margin-bottom: 0;
+  }
+
+  .demo-intro h2 {
+    font-size: clamp(2rem, 5vw, 4rem);
+  }
+
+  .demo-intro h3 {
+    margin: calc(var(--spacing) * 2) 0 0;
+    color: var(--foreground);
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  .demo-intro p {
+    max-width: 42rem;
+    margin: 0;
   }
 
   .journey-panel {
     display: grid;
     gap: calc(var(--spacing) * 6);
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     
     background: color-mix(in oklab, var(--background) 88%, var(--card));
@@ -273,6 +424,29 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
   }
 
   @media (max-width: 640px) {
+    .site-header .container-wrapper {
+      padding-inline: calc(var(--spacing) * 4);
+    }
+
+    main {
+      gap: calc(var(--spacing) * 14);
+      padding: calc(var(--spacing) * 10) calc(var(--spacing) * 4);
+    }
+
+    .hero {
+      min-height: auto;
+      padding-block: calc(var(--spacing) * 6);
+    }
+
+    .hero__actions,
+    .button {
+      width: 100%;
+    }
+
+    article {
+      padding-inline: 0;
+    }
+
     .journey-panel__header {
       align-items: flex-start;
       flex-direction: column;

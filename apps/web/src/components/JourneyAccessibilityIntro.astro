@@ -39,7 +39,7 @@ const rows = [
 
 <section class="accessibility-intro" aria-labelledby="accessibility-intro-title">
 	<div class="accessibility-intro__header header">
-		<h3>Summary</h3>
+		<h3>Latest validation snapshot</h3>
 
 		<div class="accessibility-intro__chips" aria-label="Accessibility test coverage">
 			<span class="accessibility-intro__chip accessibility-intro__chip--standards">
@@ -91,7 +91,7 @@ const rows = [
 		<div class="federation-diagram__artifact muted-bg" aria-hidden="true">
 			<svg viewBox="0 0 24 24">
 				<path d="M6 3h8l4 4v14H6V3Z" />
-				<path d="M14 3v5h5" />
+				<path d="M14 3v5h5" class="muted-bg" />
 				<path d="M9 12h6M9 16h6" />
 			</svg>
 		</div>
@@ -160,6 +160,8 @@ const rows = [
 	.accessibility-intro {
 		display: grid;
 		gap: calc(var(--spacing) * 5);
+		width: 100%;
+		min-width: 0;
 		
 		margin-bottom: calc(var(--spacing) * 8);
 		color: var(--foreground);
@@ -169,6 +171,9 @@ const rows = [
 	.accessibility-intro__header {
 		display: grid;
 		gap: calc(var(--spacing) * 3);
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
 	}
 
 	.accessibility-intro h1 {
@@ -185,6 +190,8 @@ const rows = [
 		display: flex;
 		flex-wrap: wrap;
 		gap: calc(var(--spacing) * 2);
+		width: 100%;
+		min-width: 0;
 	}
 
 	.muted-bg {
@@ -197,6 +204,7 @@ const rows = [
 		align-items: center;
 		gap: calc(var(--spacing) * 2);
 		width: fit-content;
+		max-width: 100%;
 		border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
 		border-radius: var(--radius);
 		color: var(--foreground);
@@ -257,11 +265,13 @@ const rows = [
 	}
 
 	.federation-diagram {
-		width: min(100%, 575px);
 		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		width: 575px;
+		max-width: 100%;
+		min-width: 0;
 		min-height: 9rem;
 		margin-inline: auto;
 		gap: clamp(1rem, 4vw, 2rem);
@@ -274,6 +284,7 @@ const rows = [
 		justify-content: center;
 		gap: calc(var(--spacing) * 3);
 		flex: 0 1 14rem;
+		min-width: 0;
 		min-height: 8.25rem;
 		background: color-mix(in oklab, var(--background) 88%, var(--card));
 	}
@@ -340,7 +351,7 @@ const rows = [
 		stroke: none;
 	}
 
-	.federation-diagram__artifact svg path:nth-child(n + 2) {
+	.federation-diagram__artifact svg path:nth-child(n + 3) {
 		fill: none;
 		stroke: var(--background);
 		stroke-linecap: round;
@@ -351,12 +362,14 @@ const rows = [
 	.scan-metrics {
 		display: grid;
 		gap: calc(var(--spacing) * 3);
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
 		border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
 		border-radius: var(--radius);
 		padding: calc(var(--spacing) * 4);
 		background: color-mix(in oklab, var(--background) 88%, var(--card));
 		margin-inline: auto;
-		width: auto;
 
 	}
 
@@ -402,6 +415,8 @@ const rows = [
 	}
 
 	.scan-metrics__table-wrap {
+		max-width: 100%;
+		overflow-x: auto;
 		border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
 		border-radius: var(--radius);
 		thead  {
@@ -461,59 +476,45 @@ const rows = [
 		color: var(--muted-foreground);
 	}
 
-´
-
 	@media (max-width: 640px) {
+		.accessibility-intro__chip {
+			width: 100%;
+		}
+
 		.federation-diagram {
-			flex-direction: column;
+			display: grid;
+			grid-template-columns: minmax(0, 1fr);
+			justify-items: stretch;
+			width: min(100%, 22rem);
+			min-height: 0;
 			gap: calc(var(--spacing) * 3);
 		}
 
-		.federation-diagram__side,
-		.federation-diagram__side--left,
-		.federation-diagram__side--right {
-			min-height: 10rem;
-			
+		.federation-diagram__side {
+			width: 100%;
+			min-height: 6.5rem;
 			border-radius: var(--radius);
 		}
 
-		.federation-diagram__artifact {
-			order: 2;
+		.federation-diagram__arrow {
+			justify-self: center;
 		}
 
-		.federation-diagram__arrow {
+		.federation-diagram__arrow.up,
+		.federation-diagram__arrow.down {
 			transform: rotate(90deg);
 		}
 
-		.federation-diagram__arrow:first-of-type {
-			order: 1;
-		}
-
-		.federation-diagram__arrow:last-of-type {
-			order: 3;
-		}
-
-		.federation-diagram__side--right {
-			order: 4;
-		}
-		.accessibility-intro {
-			gap: calc(var(--spacing) * 5);
-			margin-bottom: calc(var(--spacing) * 7);
-		}
-
-		.accessibility-intro__chip {
-			width: 100%;
-			justify-content: flex-start;
+		.federation-diagram__artifact {
+			width: 4.5rem;
+			flex-basis: 4.5rem;
 		}
 
 		.scan-metrics__header {
 			align-items: flex-start;
 			flex-direction: column;
-			gap: calc(var(--spacing) * 2);
-		}
-
-		.scan-metrics {
-			padding: calc(var(--spacing) * 4);
 		}
 	}
+
+
 </style>
