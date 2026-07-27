@@ -257,7 +257,7 @@ const rows = [
 	}
 
 	.federation-diagram {
-		width: min(100%, 600px);
+		width: min(100%, 575px);
 		position: relative;
 		display: flex;
 		align-items: center;
@@ -355,8 +355,8 @@ const rows = [
 		border-radius: var(--radius);
 		padding: calc(var(--spacing) * 4);
 		background: color-mix(in oklab, var(--background) 88%, var(--card));
-		width: min(100%, 800px); 
 		margin-inline: auto;
+		width: auto;
 
 	}
 
@@ -402,7 +402,6 @@ const rows = [
 	}
 
 	.scan-metrics__table-wrap {
-		overflow-x: auto;
 		border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
 		border-radius: var(--radius);
 		thead  {
@@ -462,7 +461,9 @@ const rows = [
 		color: var(--muted-foreground);
 	}
 
-	@media (max-width: 900px) {
+´
+
+	@media (max-width: 640px) {
 		.federation-diagram {
 			flex-direction: column;
 			gap: calc(var(--spacing) * 3);
@@ -495,9 +496,6 @@ const rows = [
 		.federation-diagram__side--right {
 			order: 4;
 		}
-	}
-
-	@media (max-width: 640px) {
 		.accessibility-intro {
 			gap: calc(var(--spacing) * 5);
 			margin-bottom: calc(var(--spacing) * 7);

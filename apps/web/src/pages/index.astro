@@ -6,6 +6,8 @@ import './index.css'
 import ThemeProvider from '@astrojs/starlight/components/ThemeProvider.astro';
 import Header from 'virtual:starlight/components/Header';
 import filesharingAccessibility from '../assets/accessibility/filesharing-accessibility.json';
+import filesharingJsonldUrl from '../assets/ujg/filesharing.ujg.jsonld?url';
+import filesharingYamlUrl from '../assets/ujg/filesharing.ujg.yaml?url';
 import JourneyAccessibilityIntro from '../components/JourneyAccessibilityIntro.astro';
 import JourneyPathIsland from '../components/JourneyPathIsland';
 
@@ -53,12 +55,27 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
       <main>
 
         <article class="demo-article" >
+        <section>
+          <header class="header">
+          <h2>DEMO: Nextcloud filesharing</h2>
+          </header>
+        </section>
         <JourneyAccessibilityIntro accessibilityDocument={filesharingAccessibility} />
 
         <section class="journey-panel" aria-labelledby="journey-path-title">
           <div class="journey-panel__header header">
             
             <h3 id="journey-path-title">User Journey Graph</h3>
+            <div class="journey-panel__links" aria-label="User Journey Graph source files">
+              <a class="journey-panel__source-link" href={filesharingJsonldUrl}>
+                <span class="journey-panel__source-mark">JSON</span>
+                <span>ujg.jsonld</span>
+              </a>
+              <a class="journey-panel__source-link" href={filesharingYamlUrl}>
+                <span class="journey-panel__source-mark">YAML</span>
+                <span>ujg.yaml</span>
+              </a>
+            </div>
           </div>
           <JourneyPathIsland accessibilityDocument={filesharingAccessibility} client:load />
         </section>
@@ -155,7 +172,8 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     margin-inline: auto;
   }
 
-  .journey-panel h2 {
+  .journey-panel h2,
+  .journey-panel h3 {
     margin: 0;
     color: var(--foreground);
     line-height: 1.1;
@@ -181,18 +199,89 @@ import JourneyPathIsland from '../components/JourneyPathIsland';
     gap: calc(var(--spacing) * 6);
     min-width: 0;
     
-    overflow-x: auto;
     background: color-mix(in oklab, var(--background) 88%, var(--card));
     
   }
 
   .journey-panel__header {
-    display: grid;
-    gap: calc(var(--spacing) * 1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--spacing) * 3);
   }
 
-  .journey-panel h2 {
+  .journey-panel h2,
+  .journey-panel h3 {
     font-size: 1.25rem;
+  }
+
+  .journey-panel__links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .journey-panel__source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    min-height: 2rem;
+    padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+    border: 1px solid color-mix(in oklab, var(--border) 76%, transparent);
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--card) 94%, var(--foreground) 6%),
+        color-mix(in oklab, var(--card) 86%, var(--background))
+      );
+    box-shadow: 0 1px 2px color-mix(in oklab, var(--background) 70%, transparent);
+    color: color-mix(in oklab, var(--foreground) 88%, var(--muted-foreground));
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .journey-panel__source-mark {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.45rem;
+    min-height: 1.25rem;
+    padding-inline: calc(var(--spacing) * 1);
+    border: 1px solid color-mix(in oklab, var(--blue) 38%, var(--border));
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--blue-low) 38%, transparent);
+    color: var(--blue);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .journey-panel__source-link:hover {
+    border-color: color-mix(in oklab, var(--blue) 52%, var(--border));
+    color: var(--foreground);
+    transform: translateY(-1px);
+  }
+
+  .journey-panel__source-link:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 0.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .journey-panel__header {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: calc(var(--spacing) * 2);
+    }
+
+    .journey-panel__links {
+      justify-content: flex-start;
+    }
   }
 
   .demo-article {
